@@ -1,6 +1,6 @@
-type Chain = "solana" | "ethereum" | "polygon";
+export type Chain = "solana" | "ethereum" | "polygon";
 
-type Token = {
+export type Token = {
   symbol: string;
   name: string;
   mint: string;
@@ -11,10 +11,10 @@ type Token = {
   usdValue?: number;
 };
 
-type PortfolioEntry = {
+export type PortfolioEntry = {
   chain: Chain;
   tokens: Token[];
   nativeBalance: bigint;
 };
 
-type AddressType = "solana" | "evm" | "sol-name" | "unknown";
+export type AddressType = "solana" | "evm" | "sol-name" | "unknown";
