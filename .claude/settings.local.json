@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config:*)",
+      "Bash(npm list:*)",
+      "mcp__phantom-docs__search_phantom_developer",
+      "mcp__phantom-docs__query_docs_filesystem_phantom_developer",
+      "Bash(find /Users/rizal/GDrive/phantom-portfolio/src -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) -exec wc -l {} +)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm dlx *)"
+    ]
+  }
+}
