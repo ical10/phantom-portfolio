@@ -17,4 +17,11 @@ export type PortfolioEntry = {
   nativeBalance: bigint;
 };
 
-export type AddressType = "solana" | "evm" | "sol-name" | "unknown";
+export const AddressKind = {
+  solana: "solana",
+  evm: "evm",
+  solName: "sol-name",
+  unknown: "unknown",
+} as const;
+
+export type AddressKind = (typeof AddressKind)[keyof typeof AddressKind];
