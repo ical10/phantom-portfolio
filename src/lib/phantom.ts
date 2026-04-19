@@ -1,10 +1,14 @@
 import { AddressType, type PhantomSDKConfig } from "@phantom/react-sdk";
+import { requireEnv } from "@/lib/env";
 
-const appId = process.env.NEXT_PUBLIC_PHANTOM_APP_ID;
-const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-
-if (!appId) throw new Error("App ID is not set");
-if (appUrl) throw new Error("App URL is not set");
+const appId = requireEnv(
+  process.env.NEXT_PUBLIC_PHANTOM_APP_ID,
+  "NEXT_PUBLIC_PHANTOM_APP_ID",
+);
+const appUrl = requireEnv(
+  process.env.NEXT_PUBLIC_APP_URL,
+  "NEXT_PUBLIC_APP_URL",
+);
 
 export const phantomConfig: PhantomSDKConfig = {
   appId,
