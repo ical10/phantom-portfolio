@@ -27,7 +27,9 @@ function parsePriceResponse(data: SimplePriceResponse): Record<string, number> {
   );
 }
 
-export async function fetchPrices(ids: string[]): Promise<FetchPricesResult> {
+export async function fetchPricesByCoinId(
+  ids: string[],
+): Promise<FetchPricesResult> {
   if (ids.length === 0) return { prices: {}, rateLimited: false };
 
   const params = new URLSearchParams({
@@ -44,7 +46,9 @@ export async function fetchPrices(ids: string[]): Promise<FetchPricesResult> {
   return { prices: parsePriceResponse(data), rateLimited: false };
 }
 
-export async function fetchTokenPrices(
+// Response keys: EVM addresses come back lowercased; Solana mints preserve case.
+// Caller must normalize EVM addresses before lookup.
+export async function fetchPricesByContract(
   chain: Chain,
   addresses: string[],
 ): Promise<FetchPricesResult> {
