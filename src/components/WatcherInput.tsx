@@ -1,6 +1,5 @@
-"use client";
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { detectAddressKind } from "@/lib/address";
@@ -14,7 +13,7 @@ const KIND_LABEL: Record<AddressKind, string> = {
 };
 
 export function WatcherInput() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [value, setValue] = useState("");
 
   const trimmed = value.trim();
@@ -25,7 +24,7 @@ export function WatcherInput() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!isValid) return;
-    router.push(`/dashboard?address=${encodeURIComponent(trimmed)}`);
+    navigate({ to: "/dashboard", search: { address: trimmed } });
   }
 
   return (

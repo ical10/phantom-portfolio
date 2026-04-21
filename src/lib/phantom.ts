@@ -2,12 +2,12 @@ import { AddressType, type PhantomSDKConfig } from "@phantom/react-sdk";
 import { requireEnv } from "@/lib/env";
 
 const appId = requireEnv(
-  process.env.NEXT_PUBLIC_PHANTOM_APP_ID,
-  "NEXT_PUBLIC_PHANTOM_APP_ID",
+  import.meta.env.VITE_PHANTOM_APP_ID,
+  "VITE_PHANTOM_APP_ID",
 );
 const appUrl = requireEnv(
-  process.env.NEXT_PUBLIC_APP_URL,
-  "NEXT_PUBLIC_APP_URL",
+  import.meta.env.VITE_APP_URL,
+  "VITE_APP_URL",
 );
 
 export const phantomConfig: PhantomSDKConfig = {

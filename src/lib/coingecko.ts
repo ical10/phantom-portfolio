@@ -2,8 +2,8 @@ import { requireEnv } from "@/lib/env";
 import type { Chain } from "@/types/portfolio";
 
 const COINGECKO_BASE = requireEnv(
-  process.env.NEXT_PUBLIC_COINGECKO_BASE,
-  "NEXT_PUBLIC_COINGECKO_BASE",
+  import.meta.env.VITE_COINGECKO_BASE,
+  "VITE_COINGECKO_BASE",
 );
 
 const COINGECKO_PLATFORM: Record<Chain, string> = {

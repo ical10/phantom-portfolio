@@ -4,8 +4,8 @@ import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { requireEnv } from "@/lib/env";
 
 const HELIUS_RPC = requireEnv(
-  process.env.NEXT_PUBLIC_HELIUS_RPC,
-  "NEXT_PUBLIC_HELIUS_RPC",
+  import.meta.env.VITE_HELIUS_RPC,
+  "VITE_HELIUS_RPC",
 );
 
 export const connection = new Connection(HELIUS_RPC, "confirmed");

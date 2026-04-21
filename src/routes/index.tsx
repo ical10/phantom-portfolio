@@ -1,6 +1,12 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { ConnectButton } from "@/components/ConnectButton";
 import { WatcherInput } from "@/components/WatcherInput";
 
-export default function Home() {
+export const Route = createFileRoute("/")({
+  component: Home,
+});
+
+function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-6 py-24 dark:bg-black">
       <div className="flex w-full max-w-xl flex-col gap-12">
@@ -22,10 +28,9 @@ export default function Home() {
         </section>
 
         <div className="flex items-center gap-4">
-          <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800">
-            <span className="text-sm text-zinc-500">or</span>
-            <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-          </div>
+          <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+          <span className="text-sm text-zinc-500">or</span>
+          <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
         </div>
 
         <section className="flex flex-col gap-3">

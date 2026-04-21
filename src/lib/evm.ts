@@ -4,12 +4,12 @@ import { requireEnv } from "@/lib/env";
 import { Chain, PortfolioEntry, Token } from "@/types/portfolio";
 
 const ETH_RPC = requireEnv(
-  process.env.NEXT_PUBLIC_ALCHEMY_ETH_RPC,
-  "NEXT_PUBLIC_ALCHEMY_ETH_RPC",
+  import.meta.env.VITE_ALCHEMY_ETH_RPC,
+  "VITE_ALCHEMY_ETH_RPC",
 );
 const POLYGON_RPC = requireEnv(
-  process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC,
-  "NEXT_PUBLIC_ALCHEMY_POLYGON_RPC",
+  import.meta.env.VITE_ALCHEMY_POLYGON_RPC,
+  "VITE_ALCHEMY_POLYGON_RPC",
 );
 
 export const ethClient = createPublicClient({

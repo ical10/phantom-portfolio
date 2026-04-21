@@ -1,11 +1,9 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useAccounts, useModal, useDisconnect } from "@phantom/react-sdk";
 import { Button } from "@/components/ui/button";
 
 export function ConnectButton() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const accounts = useAccounts();
   const { open, isOpened } = useModal();
   const { disconnect, isDisconnecting } = useDisconnect();
@@ -15,7 +13,10 @@ export function ConnectButton() {
   if (isConnected) {
     return (
       <div className="flex gap-2">
-        <Button onClick={() => router.push("/dashboard")} className="flex-1">
+        <Button
+          onClick={() => navigate({ to: "/dashboard" })}
+          className="flex-1"
+        >
           View portfolio
         </Button>
         <Button
