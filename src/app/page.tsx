@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { WatcherInput } from "@/components/WatcherInput";
 
 export default function Home() {
   return (
@@ -6,7 +6,7 @@ export default function Home() {
       <div className="flex w-full max-w-xl flex-col gap-12">
         <header className="flex flex-col gap-3">
           <h1 className="text-4xl font-semibold tracking-tight text-black dark:text-zinc-50">
-            Phantom Portfolio
+            Smart Portfolio
           </h1>
           <p className="text-lg text-zinc-600 dark:text-zinc-400">
             View token balances across Solana, Ethereum, and Polygon. Connect a
@@ -18,18 +18,21 @@ export default function Home() {
           <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-500">
             Connect
           </h2>
+          <ConnectButton />
         </section>
 
         <div className="flex items-center gap-4">
-          <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-          <span className="text-sm text-zinc-500">or</span>
-          <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+          <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800">
+            <span className="text-sm text-zinc-500">or</span>
+            <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+          </div>
         </div>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-500">
             Watch any address
           </h2>
+          <WatcherInput />
         </section>
       </div>
     </main>
