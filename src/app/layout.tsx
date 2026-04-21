@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Smart Portfolio",
-  description: "Manage portfolio smarter - built on top of Phantom SDK",
+  description:
+    "Multi-chain token balances for Solana, Ethereum, and Polygon. Built in top of Phantom",
 };
 
 export default function RootLayout({
