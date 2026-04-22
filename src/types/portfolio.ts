@@ -4,7 +4,7 @@ export type Token = {
   symbol: string;
   name: string;
   mint: string;
-  balance: bigint;
+  balance: string;
   decimals: number;
   logoUri?: string;
   usdPrice?: number;
@@ -14,7 +14,7 @@ export type Token = {
 export type PortfolioEntry = {
   chain: Chain;
   tokens: Token[];
-  nativeBalance: bigint;
+  nativeBalance: string;
 };
 
 export const AddressKind = {
