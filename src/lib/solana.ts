@@ -1,16 +1,16 @@
+// Server-only. Do not import from client code.
 import { Connection, PublicKey } from "@solana/web3.js";
-import { getDomainKeySync, NameRegistryState } from "@bonfida/spl-name-service";
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { requireEnv } from "@/lib/env";
 
-const HELIUS_RPC = requireEnv(
-  import.meta.env.VITE_HELIUS_RPC,
-  "VITE_HELIUS_RPC",
-);
+const HELIUS_RPC = requireEnv(process.env.HELIUS_RPC, "HELIUS_RPC");
 
 export const connection = new Connection(HELIUS_RPC, "confirmed");
 
 export async function resolveSolName(domainName: string): Promise<string> {
+  const { getDomainKeySync, NameRegistryState } = await import(
+    "@bonfida/spl-name-service"
+  );
   const cleaned = domainName.replace(/\.sol$/i, "");
   const { pubkey } = getDomainKeySync(cleaned);
   const { registry } = await NameRegistryState.retrieve(connection, pubkey);

@@ -5,10 +5,7 @@ const appId = requireEnv(
   import.meta.env.VITE_PHANTOM_APP_ID,
   "VITE_PHANTOM_APP_ID",
 );
-const appUrl = requireEnv(
-  import.meta.env.VITE_APP_URL,
-  "VITE_APP_URL",
-);
+const appUrl = requireEnv(import.meta.env.VITE_APP_URL, "VITE_APP_URL");
 
 export const phantomConfig: PhantomSDKConfig = {
   appId,
