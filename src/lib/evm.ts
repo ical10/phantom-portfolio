@@ -1,15 +1,13 @@
+// Server-only. Do not import from client code.
 import { createPublicClient, http } from "viem";
 import { mainnet, polygon } from "viem/chains";
 import { requireEnv } from "@/lib/env";
 import { Chain, PortfolioEntry, Token } from "@/types/portfolio";
 
-const ETH_RPC = requireEnv(
-  import.meta.env.VITE_ALCHEMY_ETH_RPC,
-  "VITE_ALCHEMY_ETH_RPC",
-);
+const ETH_RPC = requireEnv(process.env.ALCHEMY_ETH_RPC, "ALCHEMY_ETH_RPC");
 const POLYGON_RPC = requireEnv(
-  import.meta.env.VITE_ALCHEMY_POLYGON_RPC,
-  "VITE_ALCHEMY_POLYGON_RPC",
+  process.env.ALCHEMY_POLYGON_RPC,
+  "ALCHEMY_POLYGON_RPC",
 );
 
 export const ethClient = createPublicClient({
@@ -96,7 +94,7 @@ export async function fetchEvmPortfolio(
     const meta = metadata[i];
     return {
       mint: t.contractAddress,
-      balance: BigInt(t.tokenBalance),
+      balance: BigInt(t.tokenBalance).toString(),
       decimals: meta.decimals ?? DEFAULT_DECIMALS,
       symbol: meta.symbol ?? t.contractAddress.slice(0, TRUNCATED_SYMBOL_IDX),
       name: meta.name ?? DEFAULT_NAME,
@@ -104,5 +102,5 @@ export async function fetchEvmPortfolio(
     };
   });
 
-  return { chain, nativeBalance, tokens };
+  return { chain, nativeBalance: nativeBalance.toString(), tokens };
 }
