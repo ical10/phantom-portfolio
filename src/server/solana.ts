@@ -1,12 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { PublicKey } from "@solana/web3.js";
-import {
-  fetchAssetMetadata,
-  fetchTokenBalances,
-} from "@/lib/solana";
+import { fetchAssetMetadata, fetchTokenBalances } from "@/lib/solana";
 import { detectAddressKind } from "@/lib/address";
-import { AddressKind, type PortfolioEntry, type Token } from "@/types/portfolio";
+import {
+  AddressKind,
+  type PortfolioEntry,
+  type Token,
+} from "@/types/portfolio";
 
 const SolanaAddressSchema = z
   .string()
