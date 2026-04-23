@@ -1,6 +1,7 @@
 import { AddressType, useAccounts } from "@phantom/react-sdk";
 import { BackToHome } from "@/components/BackToHome";
 import { EvmPortfolio } from "@/components/EvmPortfolio";
+import { PortfolioTotal } from "@/components/PortfolioTotal";
 import { SolanaPortfolio } from "@/components/SolanaPortfolio";
 
 export function ConnectedDashboard() {
@@ -27,13 +28,14 @@ export function ConnectedDashboard() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-12">
       <BackToHome />
-      <header className="flex flex-col gap-1">
+      <header className="flex flex-col gap-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Connected Account Mode
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Portfolio
-        </h1>
+        <PortfolioTotal
+          solanaAddress={solanaAddress}
+          evmAddress={ethereumAddress}
+        />
       </header>
 
       {solanaAddress && <SolanaPortfolio address={solanaAddress} />}
