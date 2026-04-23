@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { PublicKey } from "@solana/web3.js";
-import { fetchAssetMetadata, fetchTokenBalances } from "@/lib/solana";
+import {
+  fetchAssetMetadata,
+  fetchTokenBalances,
+  resolveSolName,
+} from "@/lib/solana";
 import { detectAddressKind } from "@/lib/address";
 import {
   AddressKind,
@@ -13,6 +17,18 @@ const SolanaAddressSchema = z
   .string()
   .refine((v) => detectAddressKind(v) === AddressKind.solana, {
     message: "Invalid Solana address",
+  });
+
+const SolanaNameSchema = z
+  .string()
+  .refine((v) => detectAddressKind(v) === AddressKind.solName, {
+    message: "Invalid .sol name",
+  });
+
+export const resolveSolanaName = createServerFn({ method: "POST" })
+  .inputValidator(SolanaNameSchema)
+  .handler(async ({ data: name }): Promise<string> => {
+    return resolveSolName(name);
   });
 
 export const fetchSolanaPortfolio = createServerFn({ method: "POST" })
