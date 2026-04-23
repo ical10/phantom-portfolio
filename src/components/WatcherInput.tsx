@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { detectAddressKind } from "@/lib/address";
@@ -45,10 +46,17 @@ export function WatcherInput() {
       </div>
       {showHint && (
         <p
-          className={`text-xs ${
-            isValid ? "text-muted-foreground" : "text-destructive"
+          className={`flex items-center gap-1.5 text-xs ${
+            isValid
+              ? "text-emerald-600 dark:text-emerald-400"
+              : "text-destructive"
           }`}
         >
+          {isValid ? (
+            <Check className="h-3.5 w-3.5" />
+          ) : (
+            <X className="h-3.5 w-3.5" />
+          )}
           {KIND_LABEL[kind]}
         </p>
       )}
