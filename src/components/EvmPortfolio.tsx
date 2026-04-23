@@ -1,5 +1,6 @@
 import { useEvmPortfolio } from "@/hooks/useEvmPortfolio";
 import { NATIVE_CONFIG } from "@/lib/evm-chains";
+import { CoinGeckoAttribution } from "./CoinGeckoAttribution";
 import { EvmChainSection } from "./EvmChainSection";
 import { TokenTableSkeleton } from "./TokenTableSkeleton";
 
@@ -42,6 +43,7 @@ export function EvmPortfolio({ address }: Props) {
       {chains.map((c) => (
         <EvmChainSection key={c.chain} data={c} />
       ))}
+      <CoinGeckoAttribution />
     </>
   );
 }
