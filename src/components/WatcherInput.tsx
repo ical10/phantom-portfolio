@@ -44,7 +44,11 @@ export function WatcherInput() {
         </Button>
       </div>
       {showHint && (
-        <p className={`text-xs ${isValid ? "text-zinc-500" : "text-red-500"}`}>
+        <p
+          className={`text-xs ${
+            isValid ? "text-muted-foreground" : "text-destructive"
+          }`}
+        >
           {KIND_LABEL[kind]}
         </p>
       )}
