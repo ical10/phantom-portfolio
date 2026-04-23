@@ -40,3 +40,8 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# agent / planning docs — local only
+AGENTS.md
+CLAUDE.md
+PROJECT_PLAN.md
