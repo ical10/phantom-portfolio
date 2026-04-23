@@ -20,11 +20,11 @@ export const NATIVE_CONFIG: Record<EvmChain, EvmChainConfig> = {
     coinId: "ethereum",
   },
   polygon: {
-    symbol: "MATIC",
+    symbol: "POL",
     name: "Polygon",
     label: "Polygon",
     logoUri:
       "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/polygon/info/logo.png",
-    coinId: "matic-network",
+    coinId: "polygon-ecosystem-token",
   },
 };
