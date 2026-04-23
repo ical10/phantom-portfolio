@@ -1,76 +1,47 @@
-import { useEvmBalances } from "@/hooks/useEvmBalances";
-import { usePrices, useTokenPrices } from "@/hooks/usePrices";
-import { NATIVE_CONFIG, type EvmChain } from "@/lib/evm-chains";
+import { useEvmPortfolio } from "@/hooks/useEvmPortfolio";
+import { NATIVE_CONFIG } from "@/lib/evm-chains";
 import { EvmChainSection } from "./EvmChainSection";
+import { TokenTableSkeleton } from "./TokenTableSkeleton";
 
 type Props = {
   address: string;
 };
 
 export function EvmPortfolio({ address }: Props) {
-  const balances = useEvmBalances(address);
+  const { chains, isLoading, isError, error } = useEvmPortfolio(address);
 
-  const ethereumEntry = balances.data?.find((e) => e.chain === "ethereum");
-  const polygonEntry = balances.data?.find((e) => e.chain === "polygon");
-
-  const ethereumMints = ethereumEntry?.tokens.map((t) => t.mint) ?? [];
-  const polygonMints = polygonEntry?.tokens.map((t) => t.mint) ?? [];
-
-  const nativePrices = usePrices([
-    NATIVE_CONFIG.ethereum.coinId,
-    NATIVE_CONFIG.polygon.coinId,
-  ]);
-  const ethereumTokenPrices = useTokenPrices("ethereum", ethereumMints);
-  const polygonTokenPrices = useTokenPrices("polygon", polygonMints);
-
-  if (balances.isLoading) {
+  if (isLoading) {
     return (
-      <div className="text-sm text-muted-foreground">
-        Loading EVM balances...
-      </div>
+      <>
+        {(["ethereum", "polygon"] as const).map((c) => (
+          <section
+            key={c}
+            className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm"
+          >
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {NATIVE_CONFIG[c].label}
+            </h2>
+            <TokenTableSkeleton />
+          </section>
+        ))}
+      </>
     );
   }
 
-  if (balances.isError) {
+  if (isError) {
     return (
       <div className="text-sm text-destructive">
-        Failed to load balances:{" "}
-        {balances.error instanceof Error
-          ? balances.error.message
-          : "Unknown error"}
+        Failed to load EVM balances:{" "}
+        {error instanceof Error ? error.message : "Unknown error"}
       </div>
     );
   }
-
-  if (!balances.data) return null;
-
-  const pricesByChain: Record<
-    EvmChain,
-    { native?: number; tokens?: Record<string, number> }
-  > = {
-    ethereum: {
-      native: nativePrices.data?.prices[NATIVE_CONFIG.ethereum.coinId],
-      tokens: ethereumTokenPrices.data?.prices,
-    },
-    polygon: {
-      native: nativePrices.data?.prices[NATIVE_CONFIG.polygon.coinId],
-      tokens: polygonTokenPrices.data?.prices,
-    },
-  };
 
   return (
     <>
-      {balances.data.map((entry) => {
-        const chain = entry.chain as EvmChain;
-        return (
-          <EvmChainSection
-            key={entry.chain}
-            entry={entry}
-            nativePrice={pricesByChain[chain].native}
-            tokenPrices={pricesByChain[chain].tokens}
-          />
-        );
-      })}
+      {chains.map((c) => (
+        <EvmChainSection key={c.chain} data={c} />
+      ))}
     </>
   );
 }
