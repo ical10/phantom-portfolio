@@ -1,8 +1,7 @@
 import { useSolanaBalances } from "@/hooks/useSolanaBalances";
 import { useSolanaPrices } from "@/hooks/useSolanaPrices";
 import type { Token } from "@/types/portfolio";
-import { TokenListHeader } from "./TokenListHeader";
-import { TokenRow } from "./TokenRow";
+import { TokenTable } from "./TokenTable";
 
 type Props = {
   address: string;
@@ -64,14 +63,7 @@ export function SolanaPortfolio({ address }: Props) {
         Solana
       </h2>
 
-      <div className="flex flex-col">
-        <TokenListHeader />
-        <ul className="flex flex-col">
-          {rows.map((token) => (
-            <TokenRow key={token.mint} token={token} />
-          ))}
-        </ul>
-      </div>
+      <TokenTable tokens={rows} />
     </section>
   );
 }
