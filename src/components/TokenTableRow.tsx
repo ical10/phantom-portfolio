@@ -1,4 +1,5 @@
 import { TableCell, TableRow } from "@/components/ui/table";
+import { TokenLogo } from "./TokenLogo";
 import type { Token } from "@/types/portfolio";
 
 const usdLargeFormatter = new Intl.NumberFormat("en-US", {
@@ -41,17 +42,7 @@ export function TokenTableRow({ token }: Props) {
     <TableRow>
       <TableCell className="whitespace-normal">
         <div className="flex items-center gap-3">
-          {token.logoUri ? (
-            <img
-              src={token.logoUri}
-              alt=""
-              className="h-8 w-8 shrink-0 rounded-full"
-            />
-          ) : (
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
-              {displaySymbol.slice(0, 2).toUpperCase()}
-            </div>
-          )}
+          <TokenLogo src={token.logoUri} symbol={displaySymbol} />
           <div className="flex min-w-0 flex-col">
             <span className="truncate font-medium text-foreground">
               {displaySymbol}
