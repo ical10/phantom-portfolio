@@ -48,17 +48,21 @@ export function TokenTableRow({ token }: Props) {
               className="h-8 w-8 shrink-0 rounded-full"
             />
           ) : (
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-200 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
               {displaySymbol.slice(0, 2).toUpperCase()}
             </div>
           )}
           <div className="flex min-w-0 flex-col">
-            <span className="truncate font-medium">{displaySymbol}</span>
-            <span className="truncate text-xs text-zinc-500">{token.name}</span>
+            <span className="truncate font-medium text-foreground">
+              {displaySymbol}
+            </span>
+            <span className="truncate text-xs text-muted-foreground">
+              {token.name}
+            </span>
           </div>
         </div>
       </TableCell>
-      <TableCell className="text-right font-mono text-sm text-zinc-500">
+      <TableCell className="text-right font-mono text-sm text-muted-foreground">
         {token.usdPrice !== undefined ? formatUsd(token.usdPrice) : "—"}
       </TableCell>
       <TableCell className="text-right font-mono text-sm">

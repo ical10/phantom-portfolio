@@ -20,13 +20,15 @@ export function SolanaPortfolio({ address }: Props) {
 
   if (balances.isLoading) {
     return (
-      <div className="text-sm text-zinc-500">Loading Solana balances...</div>
+      <div className="text-sm text-muted-foreground">
+        Loading Solana balances...
+      </div>
     );
   }
 
   if (balances.isError) {
     return (
-      <div className="text-sm text-red-500">
+      <div className="text-sm text-destructive">
         Failed to load balances:{" "}
         {balances.error instanceof Error
           ? balances.error.message
@@ -58,8 +60,8 @@ export function SolanaPortfolio({ address }: Props) {
   });
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-500">
+    <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Solana
       </h2>
 

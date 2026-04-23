@@ -25,13 +25,15 @@ export function EvmPortfolio({ address }: Props) {
 
   if (balances.isLoading) {
     return (
-      <div className="text-sm text-zinc-500">Loading EVM balances...</div>
+      <div className="text-sm text-muted-foreground">
+        Loading EVM balances...
+      </div>
     );
   }
 
   if (balances.isError) {
     return (
-      <div className="text-sm text-red-500">
+      <div className="text-sm text-destructive">
         Failed to load balances:{" "}
         {balances.error instanceof Error
           ? balances.error.message

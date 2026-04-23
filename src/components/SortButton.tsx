@@ -32,7 +32,9 @@ export function SortButton<K extends string>({
       type="button"
       onClick={() => onToggle(sortKey)}
       className={`inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
-        isActive ? "text-foreground" : "text-zinc-500 hover:text-foreground"
+        isActive
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-foreground"
       }`}
     >
       <span>{label}</span>
