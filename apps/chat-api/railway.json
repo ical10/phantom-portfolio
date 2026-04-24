@@ -2,10 +2,20 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter chat-api build"
+    "buildCommand": "corepack enable && pnpm install --frozen-lockfile && pnpm --filter chat-api build",
+    "nixpacksPlan": {
+      "providers": ["node"],
+      "phases": {
+        "setup": {
+          "nixPkgs": ["nodejs_20", "pnpm"]
+        }
+      }
+    }
   },
   "deploy": {
     "startCommand": "pnpm --filter chat-api start",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
