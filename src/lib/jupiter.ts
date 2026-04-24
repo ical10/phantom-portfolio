@@ -13,6 +13,12 @@ const JUPITER_API_KEY = requireEnv(
 // have this limit but 20 is a safe ceiling and parallelizes fine.
 const BATCH_SIZE = 20;
 
+// Jupiter Pro demo-tier gateway 429s aggressively on bursts. Keep concurrency
+// low and add a real gap between waves. 2 concurrent × 500ms delay on an
+// 800-mint wallet is ~21 waves × ~750ms ≈ 16s worst case. Slow but reliable.
+const CONCURRENCY = 2;
+const WAVE_DELAY_MS = 500;
+
 type JupiterPriceEntry = {
   usdPrice: number;
   decimals?: number;
@@ -54,9 +60,18 @@ export async function fetchJupiterPrices(
     batches.push(mints.slice(i, i + BATCH_SIZE));
   }
 
-  // allSettled so one 429/5xx batch doesn't nuke all prices. If every
-  // batch fails, bubble up the first rejection so the UI can surface an error.
-  const results = await Promise.allSettled(batches.map(fetchOneBatch));
+  // NOTE: Serialized waves of CONCURRENCY parallel batches with a small delay
+  // between waves. allSettled within each wave so one 429/5xx doesn't
+  // nuke the rest. If every batch fails, bubble up the first rejection.
+  const results: PromiseSettledResult<Record<string, number>>[] = [];
+  for (let i = 0; i < batches.length; i += CONCURRENCY) {
+    const wave = batches.slice(i, i + CONCURRENCY);
+    const waveResults = await Promise.allSettled(wave.map(fetchOneBatch));
+    results.push(...waveResults);
+    if (i + CONCURRENCY < batches.length) {
+      await new Promise((r) => setTimeout(r, WAVE_DELAY_MS));
+    }
+  }
 
   const fulfilled = results.filter(
     (r): r is PromiseFulfilledResult<Record<string, number>> =>
