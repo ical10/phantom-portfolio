@@ -18,6 +18,11 @@ type Props = {
 };
 
 const DEFAULT_VISIBLE = 20;
+const SOL_MINT = "So11111111111111111111111111111111111111112";
+
+function isNative(t: Token): boolean {
+  return t.mint === SOL_MINT || t.mint.startsWith("native-");
+}
 
 export function TokenTable({ tokens, hideUnpriced = true }: Props) {
   const [sort, setSort] = useState<SortState<SortKey>>({
@@ -26,17 +31,23 @@ export function TokenTable({ tokens, hideUnpriced = true }: Props) {
   });
   const [expanded, setExpanded] = useState(false);
 
+  // NOTE: Native rows (SOL / ETH / POL) are exempt from the dust filter so the
+  // user always sees their gas-token balance even if the upstream price feed
+  // drops it.
   const priced = useMemo(
     () =>
-      hideUnpriced ? tokens.filter((t) => t.usdPrice !== undefined) : tokens,
+      hideUnpriced
+        ? tokens.filter((t) => isNative(t) || t.usdPrice !== undefined)
+        : tokens,
     [tokens, hideUnpriced],
   );
   const hiddenCount = tokens.length - priced.length;
 
   const sorted = useMemo(() => {
-    const copy = [...priced];
+    const natives = priced.filter(isNative);
+    const others = priced.filter((t) => !isNative(t));
     const dir = sort.direction === "asc" ? 1 : -1;
-    copy.sort((a, b) => {
+    others.sort((a, b) => {
       switch (sort.key) {
         case "token":
           return (a.symbol || "").localeCompare(b.symbol || "") * dir;
@@ -48,7 +59,7 @@ export function TokenTable({ tokens, hideUnpriced = true }: Props) {
           return ((a.usdValue ?? -Infinity) - (b.usdValue ?? -Infinity)) * dir;
       }
     });
-    return copy;
+    return [...natives, ...others];
   }, [priced, sort]);
 
   const visible = expanded ? sorted : sorted.slice(0, DEFAULT_VISIBLE);
