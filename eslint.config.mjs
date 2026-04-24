@@ -19,12 +19,13 @@ const eslintConfig = defineConfig([
     },
   },
   globalIgnores([
-    ".output/**",
-    ".nitro/**",
-    ".tanstack/**",
-    "dist/**",
-    "build/**",
-    "src/routeTree.gen.ts",
+    "**/.output/**",
+    "**/.nitro/**",
+    "**/.tanstack/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/node_modules/**",
+    "apps/web/src/routeTree.gen.ts",
   ]),
 ]);
 
