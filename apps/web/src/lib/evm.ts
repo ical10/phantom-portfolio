@@ -1,7 +1,7 @@
 // Server-only. Do not import from client code.
 import { createPublicClient, http } from "viem";
 import { mainnet, polygon } from "viem/chains";
-import { requireEnv } from "@/lib/env";
+import { requireEnv } from "@portfolio/shared";
 import { Chain, PortfolioEntry, Token } from "@/types/portfolio";
 
 const ETH_RPC = requireEnv(process.env.ALCHEMY_ETH_RPC, "ALCHEMY_ETH_RPC");

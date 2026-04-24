@@ -1,7 +1,7 @@
 // Server-only. Do not import from client code.
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
-import { requireEnv } from "@/lib/env";
+import { requireEnv } from "@portfolio/shared";
 
 const HELIUS_RPC = requireEnv(process.env.HELIUS_RPC, "HELIUS_RPC");
 

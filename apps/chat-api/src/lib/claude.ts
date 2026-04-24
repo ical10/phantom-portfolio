@@ -12,7 +12,7 @@ import type {
   PortfolioContext,
   StreamEvent,
 } from "@portfolio/shared";
-import { requireEnv } from "../env";
+import { requireEnv } from "@portfolio/shared";
 
 const ANTHROPIC_API_KEY = requireEnv(
   process.env.ANTHROPIC_API_KEY,

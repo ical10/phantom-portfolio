@@ -1,5 +1,5 @@
 import { AddressType, type PhantomSDKConfig } from "@phantom/react-sdk";
-import { requireEnv } from "@/lib/env";
+import { requireEnv } from "@portfolio/shared";
 
 const appId = requireEnv(
   import.meta.env.VITE_PHANTOM_APP_ID,

@@ -1,4 +1,4 @@
-import { requireEnv } from "@/lib/env";
+import { requireEnv } from "@portfolio/shared";
 
 const JUPITER_PRICE_BASE = requireEnv(
   process.env.JUPITER_PRICE_BASE,

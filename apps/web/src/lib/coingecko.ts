@@ -1,6 +1,6 @@
 // Server-only. Do not import from client code.
 import { LRUCache } from "lru-cache";
-import { requireEnv } from "@/lib/env";
+import { requireEnv } from "@portfolio/shared";
 import type { Chain } from "@/types/portfolio";
 
 const COINGECKO_BASE = requireEnv(process.env.COINGECKO_BASE, "COINGECKO_BASE");
