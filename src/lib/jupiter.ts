@@ -1,7 +1,16 @@
-const JUPITER_PRICE_URL = "https://lite-api.jup.ag/price/v3";
+import { requireEnv } from "@/lib/env";
 
-// NOTE: Jupiter's free v3 endpoint silently truncates large batches to ~24-25 mints.
-// Chunk requests to stay well under that and merge results.
+const JUPITER_PRICE_BASE = requireEnv(
+  process.env.JUPITER_PRICE_BASE,
+  "JUPITER_PRICE_BASE",
+);
+const JUPITER_API_KEY = requireEnv(
+  process.env.JUPITER_API_KEY,
+  "JUPITER_API_KEY",
+);
+
+// NOTE: Free tier silently truncates to ~24-25 mints per request; Pro does not
+// have this limit but 20 is a safe ceiling and parallelizes fine.
 const BATCH_SIZE = 20;
 
 type JupiterPriceEntry = {
@@ -16,7 +25,9 @@ async function fetchOneBatch(mints: string[]): Promise<Record<string, number>> {
   if (mints.length === 0) return {};
 
   const params = new URLSearchParams({ ids: mints.join(",") });
-  const res = await fetch(`${JUPITER_PRICE_URL}?${params}`);
+  const res = await fetch(`${JUPITER_PRICE_BASE}?${params}`, {
+    headers: { "x-api-key": JUPITER_API_KEY },
+  });
 
   if (!res.ok) {
     const text = await res.text();
