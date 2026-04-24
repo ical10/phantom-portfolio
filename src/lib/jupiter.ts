@@ -54,7 +54,21 @@ export async function fetchJupiterPrices(
     batches.push(mints.slice(i, i + BATCH_SIZE));
   }
 
-  const results = await Promise.all(batches.map(fetchOneBatch));
+  // allSettled so one 429/5xx batch doesn't nuke all prices. If every
+  // batch fails, bubble up the first rejection so the UI can surface an error.
+  const results = await Promise.allSettled(batches.map(fetchOneBatch));
 
-  return Object.assign({}, ...results);
+  const fulfilled = results.filter(
+    (r): r is PromiseFulfilledResult<Record<string, number>> =>
+      r.status === "fulfilled",
+  );
+
+  if (fulfilled.length === 0) {
+    const firstRejection = results.find(
+      (r): r is PromiseRejectedResult => r.status === "rejected",
+    );
+    throw firstRejection?.reason ?? new Error("All Jupiter batches failed");
+  }
+
+  return Object.assign({}, ...fulfilled.map((r) => r.value));
 }
