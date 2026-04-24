@@ -4,7 +4,7 @@ import { fetchJupiterPrices } from "@/lib/jupiter";
 import { detectAddressKind } from "@/lib/address";
 import { AddressKind } from "@/types/portfolio";
 
-const MAX_MINTS = 100;
+const MAX_MINTS = 2000;
 
 const SolanaMintsSchema = z
   .array(
