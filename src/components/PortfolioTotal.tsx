@@ -5,6 +5,7 @@ import { useSolanaPortfolio } from "@/hooks/useSolanaPortfolio";
 type Props = {
   solanaAddress?: string | null;
   evmAddress?: string | null;
+  isLoading?: boolean;
 };
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
@@ -13,12 +14,18 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-export function PortfolioTotal({ solanaAddress, evmAddress }: Props) {
+export function PortfolioTotal({
+  solanaAddress,
+  evmAddress,
+  isLoading,
+}: Props) {
   const sol = useSolanaPortfolio(solanaAddress ?? null);
   const evm = useEvmPortfolio(evmAddress ?? null);
 
   const loading =
-    (!!solanaAddress && sol.isLoading) || (!!evmAddress && evm.isLoading);
+    isLoading === true ||
+    (!!solanaAddress && sol.isLoading) ||
+    (!!evmAddress && evm.isLoading);
 
   const total = sol.total + evm.total;
 
