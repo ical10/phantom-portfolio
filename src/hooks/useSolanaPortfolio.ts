@@ -12,6 +12,7 @@ export type UseSolanaPortfolioResult = {
   isLoading: boolean;
   isError: boolean;
   error: unknown;
+  pricesError: boolean;
 };
 
 export function useSolanaPortfolio(
@@ -52,8 +53,9 @@ export function useSolanaPortfolio(
   return {
     rows,
     total,
-    isLoading: balances.isLoading,
+    isLoading: balances.isLoading || prices.isLoading,
     isError: balances.isError,
     error: balances.error,
+    pricesError: prices.isError,
   };
 }

@@ -1,5 +1,6 @@
 import { useSolanaPortfolio } from "@/hooks/useSolanaPortfolio";
 import { JupiterAttribution } from "./JupiterAttribution";
+import { PriceErrorBanner } from "./PriceErrorBanner";
 import { TokenTable } from "./TokenTable";
 import { TokenTableSkeleton } from "./TokenTableSkeleton";
 
@@ -8,7 +9,8 @@ type Props = {
 };
 
 export function SolanaPortfolio({ address }: Props) {
-  const { rows, isLoading, isError, error } = useSolanaPortfolio(address);
+  const { rows, isLoading, isError, error, pricesError } =
+    useSolanaPortfolio(address);
 
   return (
     <>
@@ -25,10 +27,13 @@ export function SolanaPortfolio({ address }: Props) {
             {error instanceof Error ? error.message : "Unknown error"}
           </div>
         ) : (
-          <TokenTable tokens={rows} />
+          <>
+            {pricesError && <PriceErrorBanner source="Solana" />}
+            <TokenTable tokens={rows} hideUnpriced={!pricesError} />
+          </>
         )}
       </section>
-      {!isLoading && !isError && <JupiterAttribution />}
+      {!isLoading && !isError && !pricesError && <JupiterAttribution />}
     </>
   );
 }

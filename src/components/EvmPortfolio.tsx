@@ -2,6 +2,7 @@ import { useEvmPortfolio } from "@/hooks/useEvmPortfolio";
 import { NATIVE_CONFIG } from "@/lib/evm-chains";
 import { CoinGeckoAttribution } from "./CoinGeckoAttribution";
 import { EvmChainSection } from "./EvmChainSection";
+import { PriceErrorBanner } from "./PriceErrorBanner";
 import { RateLimitBanner } from "./RateLimitBanner";
 import { TokenTableSkeleton } from "./TokenTableSkeleton";
 
@@ -10,7 +11,7 @@ type Props = {
 };
 
 export function EvmPortfolio({ address }: Props) {
-  const { chains, isLoading, isError, error, rateLimited } =
+  const { chains, isLoading, isError, error, rateLimited, pricesError } =
     useEvmPortfolio(address);
 
   if (isLoading) {
@@ -42,11 +43,12 @@ export function EvmPortfolio({ address }: Props) {
 
   return (
     <>
-      {rateLimited && <RateLimitBanner source="EVM" />}
+      {pricesError && <PriceErrorBanner source="EVM" />}
+      {rateLimited && !pricesError && <RateLimitBanner source="EVM" />}
       {chains.map((c) => (
-        <EvmChainSection key={c.chain} data={c} />
+        <EvmChainSection key={c.chain} data={c} hideUnpriced={!pricesError} />
       ))}
-      <CoinGeckoAttribution />
+      {!pricesError && <CoinGeckoAttribution />}
     </>
   );
 }

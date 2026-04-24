@@ -17,6 +17,7 @@ export type UseEvmPortfolioResult = {
   isError: boolean;
   error: unknown;
   rateLimited: boolean;
+  pricesError: boolean;
 };
 
 export function useEvmPortfolio(address: string | null): UseEvmPortfolioResult {
@@ -62,13 +63,23 @@ export function useEvmPortfolio(address: string | null): UseEvmPortfolioResult {
     ethereumTokenPrices.data?.rateLimited === true ||
     polygonTokenPrices.data?.rateLimited === true;
 
+  const pricesError =
+    nativePrices.isError ||
+    ethereumTokenPrices.isError ||
+    polygonTokenPrices.isError;
+
   return {
     chains,
     total,
-    isLoading: balances.isLoading,
+    isLoading:
+      balances.isLoading ||
+      nativePrices.isLoading ||
+      ethereumTokenPrices.isLoading ||
+      polygonTokenPrices.isLoading,
     isError: balances.isError,
     error: balances.error,
     rateLimited,
+    pricesError,
   };
 }
 
