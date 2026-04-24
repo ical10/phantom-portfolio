@@ -16,6 +16,7 @@ export type UseEvmPortfolioResult = {
   isLoading: boolean;
   isError: boolean;
   error: unknown;
+  rateLimited: boolean;
 };
 
 export function useEvmPortfolio(address: string | null): UseEvmPortfolioResult {
@@ -56,12 +57,18 @@ export function useEvmPortfolio(address: string | null): UseEvmPortfolioResult {
 
   const total = chains.reduce((s, c) => s + c.total, 0);
 
+  const rateLimited =
+    nativePrices.data?.rateLimited === true ||
+    ethereumTokenPrices.data?.rateLimited === true ||
+    polygonTokenPrices.data?.rateLimited === true;
+
   return {
     chains,
     total,
     isLoading: balances.isLoading,
     isError: balances.isError,
     error: balances.error,
+    rateLimited,
   };
 }
 
