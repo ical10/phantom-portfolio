@@ -1,6 +1,8 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { chatRoute } from "./routes/chat";
+import { agentWalletRoute } from "./routes/agentWallet";
 
 const app = new Hono();
 
@@ -18,6 +20,8 @@ app.use(
 );
 
 app.get("/health", (c) => c.json({ ok: true }));
+app.route("/chat", chatRoute);
+app.route("/agent-wallet", agentWalletRoute);
 
 const port = Number(process.env.PORT ?? 8787);
 
