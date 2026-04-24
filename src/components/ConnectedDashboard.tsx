@@ -11,7 +11,7 @@ export function ConnectedDashboard() {
 
   if (isLoading) {
     return (
-      <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-12">
+      <main className="mx-auto flex w-full max-w-2xl lg:max-w-3xl flex-col gap-8 px-6 py-12">
         <BackToHome />
         <header className="flex flex-col gap-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -36,7 +36,7 @@ export function ConnectedDashboard() {
 
   if (!accounts || accounts.length === 0) {
     return (
-      <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-24">
+      <main className="mx-auto flex w-full max-w-2xl lg:max-w-3xl flex-col gap-6 px-6 py-24">
         <BackToHome />
         <p className="text-muted-foreground">
           No address provided. Connect a wallet or use the watcher.
@@ -53,7 +53,7 @@ export function ConnectedDashboard() {
   )?.address;
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-6 py-12">
+    <main className="mx-auto flex w-full max-w-2xl lg:max-w-3xl flex-col gap-8 px-6 py-12">
       <BackToHome />
       <header className="flex flex-col gap-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

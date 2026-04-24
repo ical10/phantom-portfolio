@@ -37,16 +37,11 @@ export function WatcherDashboard({ address }: Props) {
             )}
           </p>
         </div>
-        <PortfolioTotal
-          solanaAddress={solanaAddress}
-          evmAddress={evmAddress}
-        />
+        <PortfolioTotal solanaAddress={solanaAddress} evmAddress={evmAddress} />
       </header>
 
       {kind === AddressKind.solName && name.isLoading && (
-        <p className="text-sm text-muted-foreground">
-          Resolving .sol name...
-        </p>
+        <p className="text-sm text-muted-foreground">Resolving .sol name...</p>
       )}
       {kind === AddressKind.solName && name.isError && (
         <p className="text-sm text-destructive">
