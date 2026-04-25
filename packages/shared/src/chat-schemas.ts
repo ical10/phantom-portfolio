@@ -70,13 +70,17 @@ export const StreamEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("error"), message: z.string() }),
 ]);
 
-// Generic pass-through of MCP's get_wallet_addresses response.
-// Shape unverified — tighten after first live MCP call.
+// MCP `wallet_addresses` response shape:
+// { walletId, organizationId, addresses: [{ addressType, address }] }
+// addressType can be: "Solana", "Ethereum", "BitcoinSegwit", "Sui".
+// Other fields are optional.
 export const AgentWalletAddressSchema = z.object({
-  type: z.string(),
+  addressType: z.string(),
   address: z.string(),
 });
 
 export const AgentWalletAddressesResponseSchema = z.object({
+  walletId: z.string().optional(),
+  organizationId: z.string().optional(),
   addresses: z.array(AgentWalletAddressSchema),
 });

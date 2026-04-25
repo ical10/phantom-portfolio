@@ -28,7 +28,7 @@ export function useAgentWallet(enabled: boolean) {
   });
 
   const solanaAddr = addresses.data?.addresses.find(
-    (a) => a.type === "solana",
+    (a) => a.addressType === "Solana",
   )?.address;
 
   // Reuse existing Solana balance hook — surface the agent wallet's SOL
