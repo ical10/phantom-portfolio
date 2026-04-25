@@ -51,7 +51,7 @@ let mcpTools: Tool[] = [];
 async function getMcpClient(): Promise<Client> {
   if (mcpClient) return mcpClient;
   if (mcpClientPromise) return mcpClientPromise;
-  mcpClientPromise = (async () => {
+  const promise = (async () => {
     const transport = new StdioClientTransport({
       command: "npx",
       args: ["-y", "@phantom/mcp-server@latest"],
@@ -73,6 +73,13 @@ async function getMcpClient(): Promise<Client> {
     mcpClient = client;
     return client;
   })();
+  // If the bootstrap fails, clear the cached promise so the next caller
+  // can retry from scratch. Without this, a transient connect/listTools
+  // failure poisons the singleton until the server restarts.
+  mcpClientPromise = promise.catch((e) => {
+    mcpClientPromise = null;
+    throw e;
+  });
   return mcpClientPromise;
 }
 
@@ -286,6 +293,7 @@ export async function streamChat(
       message: `Exceeded max turns (${MAX_TURNS}) — conversation halted.`,
     });
   } catch (e) {
+    console.error("[streamChat]", e);
     emit({
       type: "error",
       message: e instanceof Error ? e.message : "Unknown error",
