@@ -19,8 +19,10 @@ export type RateLimitResult =
 export function checkRateLimit(ip: string): RateLimitResult {
   const current = counters.get(ip) ?? 0;
   if (current >= MAX_PER_WINDOW) {
-    // TTL for this key is refreshed on every get/set, but we treat
-    // "time to a full reset" as the original window for a conservative hint.
+    // Fixed window: lru-cache TTL is set on insert and not refreshed on get
+    // (we don't pass `updateAgeOnGet`). The retry hint is therefore an upper
+    // bound — the entry actually expires N ms after the FIRST hit in this
+    // window, not the most recent one.
     return { ok: false, retryAfterSeconds: Math.ceil(WINDOW_MS / 1000) };
   }
   counters.set(ip, current + 1);
