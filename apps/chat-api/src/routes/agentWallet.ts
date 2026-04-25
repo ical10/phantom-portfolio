@@ -4,6 +4,7 @@ import { getAgentWalletAddresses } from "../lib/claude";
 
 export const agentWalletRoute = new Hono();
 
+// Rate limiting applied at mount time in index.ts.
 agentWalletRoute.get("/addresses", async (c) => {
   try {
     const result = await getAgentWalletAddresses();

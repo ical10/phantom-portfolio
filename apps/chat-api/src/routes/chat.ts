@@ -3,27 +3,13 @@ import { streamSSE } from "hono/streaming";
 import { ChatRequestSchema } from "@portfolio/shared";
 import type { StreamEvent } from "@portfolio/shared";
 import { streamChat } from "../lib/claude";
-import { checkRateLimit } from "../lib/rateLimit";
 
 const MAX_TURNS_IN_HISTORY = 20;
 
 export const chatRoute = new Hono();
 
+// Rate limiting applied at mount time in index.ts.
 chatRoute.post("/", async (c) => {
-  // Railway sets x-forwarded-for; the leftmost entry is the real client IP.
-  // If we ever front this with another proxy, revisit the parsing.
-  const ip =
-    c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-
-  const limit = checkRateLimit(ip);
-  if (!limit.ok) {
-    return c.json(
-      { error: "rate-limited", retryAfterSeconds: limit.retryAfterSeconds },
-      429,
-      { "Retry-After": String(limit.retryAfterSeconds) },
-    );
-  }
-
   const raw = await c.req.json().catch(() => null);
   const parsed = ChatRequestSchema.safeParse(raw);
   if (!parsed.success) {

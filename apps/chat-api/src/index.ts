@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { rateLimit } from "./middleware/rateLimit";
 import { chatRoute } from "./routes/chat";
 import { agentWalletRoute } from "./routes/agentWallet";
 
@@ -20,6 +21,9 @@ app.use(
 );
 
 app.get("/health", (c) => c.json({ ok: true }));
+// /health stays unmetered — Railway probes shouldn't count toward the cap.
+app.use("/chat/*", rateLimit);
+app.use("/agent-wallet/*", rateLimit);
 app.route("/chat", chatRoute);
 app.route("/agent-wallet", agentWalletRoute);
 
