@@ -27,6 +27,11 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // Mirror messages into a ref so sendMessage can read the latest list
+  // without depending on `messages` (which would re-create sendMessage on
+  // every token append and churn consumers like EmptyState's onPick).
+  const messagesRef = useRef<ChatMessage[]>(messages);
+  messagesRef.current = messages;
 
   const abort = useCallback(() => {
     abortRef.current?.abort();
@@ -42,7 +47,7 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || isStreaming) return;
+      if (!trimmed || abortRef.current) return;
 
       if (!CHAT_API_URL) {
         setError("VITE_CHAT_API_URL is not set");
@@ -53,7 +58,7 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
       // Snapshot the messages array we're about to send (includes the new
       // user msg) BEFORE the state update, so the server call matches
       // what the UI shows.
-      const outboundMessages = [...messages, userMsg];
+      const outboundMessages = [...messagesRef.current, userMsg];
       setMessages(outboundMessages);
       setIsStreaming(true);
       setError(null);
@@ -206,7 +211,7 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
         abortRef.current = null;
       }
     },
-    [messages, isStreaming, buildPortfolio],
+    [buildPortfolio],
   );
 
   return { messages, sendMessage, abort, reset, isStreaming, error };
