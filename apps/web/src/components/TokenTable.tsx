@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/table";
 import { SortButton, type SortState } from "./SortButton";
 import { TokenTableRow, getAmount } from "./TokenTableRow";
+import { SOL_MINT } from "@/lib/constants";
 import type { Token } from "@/types/portfolio";
 
 type SortKey = "token" | "price" | "amount" | "value";
@@ -18,7 +19,6 @@ type Props = {
 };
 
 const DEFAULT_VISIBLE = 20;
-const SOL_MINT = "So11111111111111111111111111111111111111112";
 
 function isNative(t: Token): boolean {
   return t.mint === SOL_MINT || t.mint.startsWith("native-");

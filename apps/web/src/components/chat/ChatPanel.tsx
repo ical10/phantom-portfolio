@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useChat } from "@/hooks/useChat";
 import { useEvmPortfolio } from "@/hooks/useEvmPortfolio";
 import { useSolanaPortfolio } from "@/hooks/useSolanaPortfolio";
+import { SOL_MINT } from "@/lib/constants";
 import type { Holding, PortfolioContext } from "@portfolio/shared";
 import { AgentWalletStrip } from "./AgentWalletStrip";
 import { ChatInput } from "./ChatInput";

@@ -1,8 +1,8 @@
 import { useSolanaBalances } from "./useSolanaBalances";
 import { useSolanaPrices } from "./useSolanaPrices";
+import { SOL_MINT } from "@/lib/constants";
 import type { Token } from "@/types/portfolio";
 
-const SOL_MINT = "So11111111111111111111111111111111111111112";
 const SOL_LOGO =
   "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png";
 
