@@ -10,10 +10,10 @@ const MAX_TURNS_IN_HISTORY = 20;
 export const chatRoute = new Hono();
 
 chatRoute.post("/", async (c) => {
+  // Railway sets x-forwarded-for; the leftmost entry is the real client IP.
+  // If we ever front this with another proxy, revisit the parsing.
   const ip =
-    c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ||
-    c.req.header("cf-connecting-ip") ||
-    "unknown";
+    c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
   const limit = checkRateLimit(ip);
   if (!limit.ok) {
@@ -51,8 +51,5 @@ chatRoute.post("/", async (c) => {
       // serialize writes strictly; the stream internally buffers in order.
       void emit(event);
     }, abortController.signal);
-
-    // Give any in-flight writes a tick to flush before closing.
-    await new Promise((r) => setTimeout(r, 10));
   });
 });
