@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PhantomProvider } from "@phantom/react-sdk";
+import { ChatBubble } from "@/components/chat/ChatBubble";
 import { phantomConfig } from "@/lib/phantom";
 import appCss from "@/styles.css?url";
 import "@fontsource-variable/geist";
@@ -42,6 +43,7 @@ function RootComponent() {
           <ClientOnly fallback={null}>
             <PhantomProvider config={phantomConfig} appName="Smart Portfolio">
               <Outlet />
+              <ChatBubble />
             </PhantomProvider>
           </ClientOnly>
         </QueryClientProvider>
