@@ -1,5 +1,6 @@
 import { AlertTriangle, Wrench } from "lucide-react";
 import type { ChatMessage as ChatMessageType } from "@portfolio/shared";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 type Props = {
   message: ChatMessageType;
@@ -19,8 +20,10 @@ export function ChatMessage({ message }: Props) {
   if (message.role === "assistant") {
     return (
       <div className="flex justify-start">
-        <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-bl-md bg-muted px-3.5 py-2 text-sm text-foreground">
-          {message.content || (
+        <div className="max-w-[85%] break-words rounded-2xl rounded-bl-md bg-muted px-3.5 py-2 text-sm text-foreground">
+          {message.content ? (
+            <MarkdownRenderer content={message.content} />
+          ) : (
             <span className="text-muted-foreground italic">…</span>
           )}
         </div>
