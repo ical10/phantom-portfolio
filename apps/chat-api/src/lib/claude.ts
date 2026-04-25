@@ -39,8 +39,11 @@ const TOOL_CALL_TIMEOUT_MS = 30_000;
 
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
-// Module-level MCP client + tool list. One subprocess per server process,
-// not per request. Simulating Claude Code on a backend server.
+// Module-level singleton. The MCP subprocess cold-start is ~40s (npx
+// download + device-code auth + tool listing), so spawning per-request
+// is not viable; we share one across the lifetime of the Node process.
+// `mcpClientPromise` guards against concurrent first-callers all racing
+// to spawn their own subprocess.
 let mcpClient: Client | null = null;
 let mcpClientPromise: Promise<Client> | null = null;
 let mcpTools: Tool[] = [];
@@ -135,38 +138,28 @@ Rules:
 function translateHistory(msgs: ChatMessage[]): MessageParam[] {
   const out: MessageParam[] = [];
 
-  const pushAssistantBlock = (block: ContentBlockParam) => {
+  // Helpers always treat content as ContentBlockParam[]. We never mix
+  // string and array forms — assistant and user messages built here are
+  // always arrays, which keeps the merging logic uniform.
+  const pushBlock = (
+    role: "assistant" | "user",
+    block: ContentBlockParam,
+  ) => {
     const last = out[out.length - 1];
-    if (last?.role === "assistant") {
-      if (typeof last.content === "string") {
-        last.content = [
-          { type: "text", text: last.content },
-          block,
-        ] as ContentBlockParam[];
-      } else {
-        (last.content as ContentBlockParam[]).push(block);
-      }
+    if (last?.role === role && Array.isArray(last.content)) {
+      last.content.push(block);
     } else {
-      out.push({ role: "assistant", content: [block] });
-    }
-  };
-
-  const pushUserBlock = (block: ContentBlockParam) => {
-    const last = out[out.length - 1];
-    if (last?.role === "user" && Array.isArray(last.content)) {
-      (last.content as ContentBlockParam[]).push(block);
-    } else {
-      out.push({ role: "user", content: [block] });
+      out.push({ role, content: [block] });
     }
   };
 
   for (const m of msgs) {
     if (m.role === "user") {
-      out.push({ role: "user", content: m.content });
+      pushBlock("user", { type: "text", text: m.content });
     } else if (m.role === "assistant") {
-      if (m.content) pushAssistantBlock({ type: "text", text: m.content });
+      if (m.content) pushBlock("assistant", { type: "text", text: m.content });
     } else if (m.role === "tool-call") {
-      pushAssistantBlock({
+      pushBlock("assistant", {
         type: "tool_use",
         id: m.id,
         name: m.name,
@@ -180,7 +173,7 @@ function translateHistory(msgs: ChatMessage[]): MessageParam[] {
           typeof m.output === "string" ? m.output : JSON.stringify(m.output),
         is_error: m.isError ?? false,
       };
-      pushUserBlock(block);
+      pushBlock("user", block);
     }
   }
 
