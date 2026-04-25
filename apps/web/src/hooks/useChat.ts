@@ -61,6 +61,93 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
       const controller = new AbortController();
       abortRef.current = controller;
 
+      // Smooth-stream buffer: token deltas from Anthropic arrive at variable
+      // rates and chunk sizes. We accumulate them into `pending` and drain
+      // a fixed number of chars per animation frame, which gives a uniform
+      // typewriter cadence regardless of upstream jitter. Same idea as
+      // Vercel AI SDK's `smoothStream` transform, hand-rolled.
+      const CHARS_PER_FRAME = 5; // ~300 chars/sec at 60fps
+      let pending = "";
+      let rafId: number | null = null;
+
+      const appendToLastAssistant = (text: string) => {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant") {
+            return [
+              ...prev.slice(0, -1),
+              { ...last, content: last.content + text },
+            ];
+          }
+          return [...prev, { role: "assistant", content: text }];
+        });
+      };
+
+      const tick = () => {
+        rafId = null;
+        if (!pending) return;
+        const chunk = pending.slice(0, CHARS_PER_FRAME);
+        pending = pending.slice(chunk.length);
+        appendToLastAssistant(chunk);
+        if (pending) rafId = requestAnimationFrame(tick);
+      };
+
+      const enqueueText = (text: string) => {
+        pending += text;
+        if (rafId === null) rafId = requestAnimationFrame(tick);
+      };
+
+      // Force-flush remaining buffer (e.g. before a tool-call event or at
+      // stream end), so message ordering matches wire order and the user
+      // sees the final text before `isStreaming` flips off.
+      const drainPending = () => {
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+        if (pending) {
+          appendToLastAssistant(pending);
+          pending = "";
+        }
+      };
+
+      const handleEvent = (event: StreamEvent) => {
+        if (event.type !== "token") drainPending();
+        switch (event.type) {
+          case "token":
+            enqueueText(event.delta);
+            return;
+          case "tool-call-start":
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "tool-call",
+                id: event.id,
+                name: event.name,
+                input: event.input,
+              },
+            ]);
+            return;
+          case "tool-call-result":
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "tool-result",
+                id: event.id,
+                name: event.name,
+                output: event.output,
+                isError: event.isError,
+              },
+            ]);
+            return;
+          case "error":
+            setError(event.message);
+            return;
+          case "done":
+            return;
+        }
+      };
+
       try {
         const res = await fetch(`${CHAT_API_URL}/chat`, {
           method: "POST",
@@ -105,13 +192,16 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
               .find((l) => l.startsWith("data: "));
             if (!dataLine) continue;
             const event = JSON.parse(dataLine.slice(6)) as StreamEvent;
-            applyEvent(event, setMessages, setError);
+            handleEvent(event);
           }
         }
+        drainPending();
       } catch (e) {
+        drainPending();
         if (e instanceof Error && e.name === "AbortError") return;
         setError(e instanceof Error ? e.message : "Unknown error");
       } finally {
+        if (rafId !== null) cancelAnimationFrame(rafId);
         setIsStreaming(false);
         abortRef.current = null;
       }
@@ -122,56 +212,3 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
   return { messages, sendMessage, abort, reset, isStreaming, error };
 }
 
-function applyEvent(
-  event: StreamEvent,
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
-  setError: React.Dispatch<React.SetStateAction<string | null>>,
-) {
-  switch (event.type) {
-    case "token": {
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant") {
-          return [
-            ...prev.slice(0, -1),
-            { ...last, content: last.content + event.delta },
-          ];
-        }
-        return [...prev, { role: "assistant", content: event.delta }];
-      });
-      return;
-    }
-    case "tool-call-start": {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "tool-call",
-          id: event.id,
-          name: event.name,
-          input: event.input,
-        },
-      ]);
-      return;
-    }
-    case "tool-call-result": {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "tool-result",
-          id: event.id,
-          name: event.name,
-          output: event.output,
-          isError: event.isError,
-        },
-      ]);
-      return;
-    }
-    case "error": {
-      setError(event.message);
-      return;
-    }
-    case "done": {
-      return;
-    }
-  }
-}
