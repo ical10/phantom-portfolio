@@ -55,8 +55,9 @@ function Home() {
               Smart Portfolio
             </h1>
             <p className="text-lg text-muted-foreground">
-              View token balances across Solana, Ethereum, and Polygon. Connect
-              a wallet or paste any address to watch.
+              Any portfolio, clearly explained. Ask what tokens you own, how
+              much the balance, what to swap — across Solana, Ethereum, and
+              Polygon. Connect your wallet or paste any address.
             </p>
           </div>
         </header>
