@@ -9,7 +9,7 @@ export function ChatMessage({ message }: Props) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground">
+        <div className="max-w-[80%] break-words rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm text-primary-foreground">
           {message.content}
         </div>
       </div>
@@ -19,7 +19,7 @@ export function ChatMessage({ message }: Props) {
   if (message.role === "assistant") {
     return (
       <div className="flex justify-start">
-        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-md bg-muted px-3.5 py-2 text-sm text-foreground">
+        <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-bl-md bg-muted px-3.5 py-2 text-sm text-foreground">
           {message.content || (
             <span className="text-muted-foreground italic">…</span>
           )}
@@ -30,9 +30,9 @@ export function ChatMessage({ message }: Props) {
 
   if (message.role === "tool-call") {
     return (
-      <div className="flex items-center gap-2 self-start text-xs text-muted-foreground">
+      <div className="flex max-w-full items-center gap-2 self-start text-xs text-muted-foreground">
         <Wrench className="h-3 w-3 shrink-0" />
-        <span className="font-mono">{message.name}</span>
+        <span className="truncate font-mono">{message.name}</span>
         <span className="opacity-60">running…</span>
       </div>
     );
@@ -40,14 +40,14 @@ export function ChatMessage({ message }: Props) {
 
   // tool-result
   return (
-    <details className="group self-start">
+    <details className="group max-w-full self-start">
       <summary className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
         {message.isError ? (
           <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />
         ) : (
           <Wrench className="h-3 w-3 shrink-0" />
         )}
-        <span className="font-mono">{message.name}</span>
+        <span className="truncate font-mono">{message.name}</span>
         <span className={message.isError ? "text-destructive" : "opacity-60"}>
           {message.isError ? "errored" : "returned"}
         </span>
@@ -58,7 +58,7 @@ export function ChatMessage({ message }: Props) {
           hide
         </span>
       </summary>
-      <pre className="mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card p-2 text-[11px] leading-relaxed">
+      <pre className="mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card p-2 text-[11px] leading-relaxed whitespace-pre-wrap break-words">
         {safeStringify(message.output)}
       </pre>
     </details>

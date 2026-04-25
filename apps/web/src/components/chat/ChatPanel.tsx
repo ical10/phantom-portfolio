@@ -117,8 +117,8 @@ export function ChatPanel({ open, solanaAddress, evmAddress }: Props) {
 
       <AgentWalletStrip enabled={open} />
 
-      <ScrollArea className="flex-1">
-        <div className="flex flex-col gap-3 px-1 py-1">
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="flex min-w-0 flex-col gap-3 px-1 py-1">
           {showEmpty && (
             <EmptyState
               hasWallet={!!(solanaAddress || evmAddress)}
