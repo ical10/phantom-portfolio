@@ -22,14 +22,15 @@ const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 
 // Read-only MCP tools.
 const ALLOWED_READ_TOOLS = new Set([
-  "get_wallet_addresses",
-  "simulate_transaction",
-  "get_token_allowance",
-  "get_perp_markets",
-  "get_perp_account",
-  "get_perp_positions",
-  "get_perp_orders",
-  "get_perp_trade_history",
+  "wallet_addresses",
+  "wallet_status",
+  "simulate",
+  "evm_allowance",
+  "perps_markets",
+  "perps_account",
+  "perps_positions",
+  "perps_orders",
+  "perps_history",
 ]);
 
 const MAX_TURNS = 5;
@@ -75,7 +76,7 @@ async function getMcpClient(): Promise<Client> {
 export async function getAgentWalletAddresses(): Promise<unknown> {
   const client = await getMcpClient();
   const result = await client.callTool({
-    name: "get_wallet_addresses",
+    name: "wallet_addresses",
     arguments: {},
   });
   return result;
