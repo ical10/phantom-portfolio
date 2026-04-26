@@ -18,7 +18,7 @@ const ANTHROPIC_API_KEY = requireEnv(
   process.env.ANTHROPIC_API_KEY,
   "ANTHROPIC_API_KEY",
 );
-const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 
 // Read-only MCP tools - not gated and always available.
 const ALLOWED_READ_TOOLS = new Set([
