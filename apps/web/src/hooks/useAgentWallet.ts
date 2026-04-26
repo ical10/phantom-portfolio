@@ -35,6 +35,14 @@ export function useAgentWallet(enabled: boolean) {
   // balance for the "Fund agent wallet" affordance.
   const balance = useSolanaBalances(solanaAddr ?? null);
 
+  // Threshold for "funded": ~0.001 SOL. Below this you can't even pay for
+  // a single base fee, let alone an agent action — so it's a usable line
+  // for unlocking the write UI.
+  const lamports = balance.data?.nativeBalance
+    ? BigInt(balance.data.nativeBalance)
+    : 0n;
+  const isFunded = lamports >= 1_000_000n;
+
   return {
     addresses: addresses.data?.addresses ?? [],
     isLoading: addresses.isLoading,
@@ -42,5 +50,7 @@ export function useAgentWallet(enabled: boolean) {
     error: addresses.error,
     solanaAddress: solanaAddr,
     solanaBalanceLamports: balance.data?.nativeBalance,
+    isFunded,
+    refetchBalance: balance.refetch,
   };
 }

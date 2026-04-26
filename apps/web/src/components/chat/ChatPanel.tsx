@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { useAgentWallet } from "@/hooks/useAgentWallet";
 import { useChat } from "@/hooks/useChat";
 import { useEvmPortfolio } from "@/hooks/useEvmPortfolio";
 import { useSolanaPortfolio } from "@/hooks/useSolanaPortfolio";
@@ -72,8 +73,13 @@ export function ChatPanel({ open, solanaAddress, evmAddress }: Props) {
     };
   }, [sol.rows, sol.total, evm.chains, evm.total, solanaAddress, evmAddress]);
 
+  const agent = useAgentWallet(open);
+  const isFundedRef = useRef(agent.isFunded);
+  isFundedRef.current = agent.isFunded;
+
   const { messages, sendMessage, abort, reset, isStreaming, error } = useChat({
     buildPortfolio,
+    getWriteMode: () => isFundedRef.current,
   });
 
   // Sentinel at the end of the message list — scroll into view on append
