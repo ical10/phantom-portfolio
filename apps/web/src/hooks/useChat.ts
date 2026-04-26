@@ -11,6 +11,9 @@ type UseChatArgs = {
   // Called once per sendMessage at the moment of send, so the latest
   // dashboard state is captured rather than stale-closured.
   buildPortfolio: () => PortfolioContext;
+  // Read at send time so the chat picks up funding state
+  // changes mid-conversation without re-creating sendMessage.
+  getWriteMode: () => boolean;
 };
 
 type UseChatResult = {
@@ -22,7 +25,10 @@ type UseChatResult = {
   error: string | null;
 };
 
-export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
+export function useChat({
+  buildPortfolio,
+  getWriteMode,
+}: UseChatArgs): UseChatResult {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,6 +166,7 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
           body: JSON.stringify({
             messages: outboundMessages,
             portfolio: buildPortfolio(),
+            writeMode: getWriteMode(),
           }),
           signal: controller.signal,
         });
@@ -211,9 +218,8 @@ export function useChat({ buildPortfolio }: UseChatArgs): UseChatResult {
         abortRef.current = null;
       }
     },
-    [buildPortfolio],
+    [buildPortfolio, getWriteMode],
   );
 
   return { messages, sendMessage, abort, reset, isStreaming, error };
 }
-

@@ -20,7 +20,7 @@ const ANTHROPIC_API_KEY = requireEnv(
 );
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 
-// Read-only MCP tools.
+// Read-only MCP tools - not gated and always available.
 const ALLOWED_READ_TOOLS = new Set([
   "wallet_addresses",
   "wallet_status",
@@ -31,6 +31,27 @@ const ALLOWED_READ_TOOLS = new Set([
   "perps_positions",
   "perps_orders",
   "perps_history",
+]);
+
+// Write tools — gated behind `writeMode` (set after the user funds the
+// agent wallet) AND a per-call user approval handled by the permission
+// flow.
+const ALLOWED_WRITE_TOOLS = new Set([
+  "transfer_tokens",
+  "buy_token",
+  "portfolio_rebalance",
+  "send_solana_transaction",
+  "send_evm_transaction",
+  "sign_solana_message",
+  "sign_evm_personal_message",
+  "sign_evm_typed_data",
+  "open_perp_position",
+  "close_perp_position",
+  "cancel_perp_order",
+  "update_perp_leverage",
+  "deposit_to_hyperliquid",
+  "transfer_spot_to_perps",
+  "withdraw_from_perps",
 ]);
 
 const MAX_TURNS = 5;
@@ -46,6 +67,8 @@ const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 // to spawn their own subprocess.
 let mcpClient: Client | null = null;
 let mcpClientPromise: Promise<Client> | null = null;
+// All filtered tools (read + write). The per-request tool list is
+// derived from this by `writeMode`.
 let mcpTools: Tool[] = [];
 
 async function getMcpClient(): Promise<Client> {
@@ -64,7 +87,10 @@ async function getMcpClient(): Promise<Client> {
     await client.connect(transport);
     const { tools } = await client.listTools();
     mcpTools = tools
-      .filter((t) => ALLOWED_READ_TOOLS.has(t.name))
+      .filter(
+        (t) =>
+          ALLOWED_READ_TOOLS.has(t.name) || ALLOWED_WRITE_TOOLS.has(t.name),
+      )
       .map((t) => ({
         name: t.name,
         description: t.description ?? "",
@@ -92,7 +118,10 @@ export async function getAgentWalletAddresses(): Promise<unknown> {
   return result;
 }
 
-export function buildSystemPrompt(portfolio: PortfolioContext): string {
+export function buildSystemPrompt(
+  portfolio: PortfolioContext,
+  writeMode: boolean,
+): string {
   const addrs = [
     portfolio.addresses.solana ? `  solana: ${portfolio.addresses.solana}` : "",
     portfolio.addresses.ethereum
@@ -116,7 +145,20 @@ export function buildSystemPrompt(portfolio: PortfolioContext): string {
       ? `\n  (${portfolio.hiddenCount} additional unpriced / dust tokens omitted from snapshot)`
       : "";
 
-  const toolNames = mcpTools.map((t) => t.name).join(", ") || "(none yet)";
+  const exposed = mcpTools.filter(
+    (t) =>
+      ALLOWED_READ_TOOLS.has(t.name) ||
+      (writeMode && ALLOWED_WRITE_TOOLS.has(t.name)),
+  );
+  const toolNames = exposed.map((t) => t.name).join(", ") || "(none yet)";
+
+  const writeRule = writeMode
+    ? `- Write tools are AVAILABLE. Before invoking one, briefly explain what you intend
+  (token, amount, recipient, expected effect). The host UI will surface a
+  per-call approval — assume the user must Approve before the tool runs.`
+    : `- Write tools are DISABLED until the user funds the agent wallet. If asked to
+  transfer, swap, or take a perp action, explain that they need to fund the
+  agent wallet first using the Fund button in the chat header.`;
 
   return `You are an assistant embedded in a multi-chain portfolio dashboard.
 
@@ -132,7 +174,7 @@ Available Phantom MCP tools: ${toolNames}
 Rules:
 - For questions about the user's holdings, use the snapshot above. Don't call balance tools.
 - For transaction simulation, token allowances, and Hyperliquid perp reads, call the MCP tools.
-- Write tools (transfer, swap, perp open/close) are DISABLED in v1.
+${writeRule}
 - Never call pay_api_access.
 - Be concise. If a tool returns data, summarize it — don't dump raw JSON.`;
 }
@@ -148,10 +190,7 @@ function translateHistory(msgs: ChatMessage[]): MessageParam[] {
   // Helpers always treat content as ContentBlockParam[]. We never mix
   // string and array forms — assistant and user messages built here are
   // always arrays, which keeps the merging logic uniform.
-  const pushBlock = (
-    role: "assistant" | "user",
-    block: ContentBlockParam,
-  ) => {
+  const pushBlock = (role: "assistant" | "user", block: ContentBlockParam) => {
     const last = out[out.length - 1];
     if (last?.role === role && Array.isArray(last.content)) {
       last.content.push(block);
@@ -190,13 +229,19 @@ function translateHistory(msgs: ChatMessage[]): MessageParam[] {
 export async function streamChat(
   messages: ChatMessage[],
   portfolio: PortfolioContext,
+  writeMode: boolean,
   emit: (event: StreamEvent) => void,
   signal: AbortSignal,
 ): Promise<void> {
   try {
     const client = await getMcpClient();
-    const systemPrompt = buildSystemPrompt(portfolio);
+    const systemPrompt = buildSystemPrompt(portfolio, writeMode);
     const history = translateHistory(messages);
+    const tools = mcpTools.filter(
+      (t) =>
+        ALLOWED_READ_TOOLS.has(t.name) ||
+        (writeMode && ALLOWED_WRITE_TOOLS.has(t.name)),
+    );
 
     for (let turn = 0; turn < MAX_TURNS; turn++) {
       if (signal.aborted) return;
@@ -206,7 +251,7 @@ export async function streamChat(
           model: MODEL,
           max_tokens: MAX_TOKENS,
           system: systemPrompt,
-          tools: mcpTools,
+          tools,
           messages: history,
         },
         { signal },
@@ -244,6 +289,26 @@ export async function streamChat(
           name: block.name,
           input: block.input,
         });
+        // Defense in depth: even if the LLM ignores the prompt and the
+        // tool list filtering, refuse write tools when writeMode is off.
+        if (ALLOWED_WRITE_TOOLS.has(block.name) && !writeMode) {
+          const msg =
+            "Write mode is disabled. Ask the user to fund the agent wallet first.";
+          emit({
+            type: "tool-call-result",
+            id: block.id,
+            name: block.name,
+            output: { error: msg },
+            isError: true,
+          });
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: `Error: ${msg}`,
+            is_error: true,
+          });
+          continue;
+        }
         try {
           const result = await client.callTool(
             {

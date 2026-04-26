@@ -45,9 +45,12 @@ export const ChatMessageSchema = z.discriminatedUnion("role", [
 
 // POST /chat request body. Schema max 100 is an abuse guard; the server
 // additionally trims to the last 20 turns before calling Claude (cost cap).
+// `writeMode` is set by the client only when the agent wallet has been
+// funded — gates the LLM's access to MCP write tools.
 export const ChatRequestSchema = z.object({
   messages: z.array(ChatMessageSchema).max(100),
   portfolio: PortfolioContextSchema,
+  writeMode: z.boolean().default(false),
 });
 
 // SSE payload from /chat.

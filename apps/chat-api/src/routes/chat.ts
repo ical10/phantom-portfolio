@@ -21,7 +21,7 @@ chatRoute.post("/", async (c) => {
 
   // Trim to last N turns for cost control. Schema caps at 100; we send 20.
   const messages = parsed.data.messages.slice(-MAX_TURNS_IN_HISTORY);
-  const { portfolio } = parsed.data;
+  const { portfolio, writeMode } = parsed.data;
 
   return streamSSE(c, async (stream) => {
     const abortController = new AbortController();
@@ -32,10 +32,16 @@ chatRoute.post("/", async (c) => {
       await stream.writeSSE({ data: JSON.stringify(event) });
     };
 
-    await streamChat(messages, portfolio, (event) => {
-      // Fire-and-forget — Hono's writeSSE is async but we don't need to
-      // serialize writes strictly; the stream internally buffers in order.
-      void emit(event);
-    }, abortController.signal);
+    await streamChat(
+      messages,
+      portfolio,
+      writeMode,
+      (event) => {
+        // Fire-and-forget — Hono's writeSSE is async but we don't need to
+        // serialize writes strictly; the stream internally buffers in order.
+        void emit(event);
+      },
+      abortController.signal,
+    );
   });
 });
