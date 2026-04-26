@@ -6,7 +6,8 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, AlertTriangle } from "lucide-react";
+import { DEMO_WRITE_CAPS } from "@portfolio/shared";
 import {
   Dialog,
   DialogContent,
@@ -100,9 +101,25 @@ export function FundAgentDialog({
           <DialogDescription>
             Send SOL from your connected wallet to the agent wallet to unlock
             on-chain actions in chat. The agent wallet is custodied by Phantom
-            MCP and only signs after you approve each action.
+            MCP.
           </DialogDescription>
         </DialogHeader>
+
+        {!signature && (
+          <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              <strong>Demo build.</strong> Once funded, the agent can execute{" "}
+              <code className="font-mono">{DEMO_WRITE_CAPS.tool}</code> capped at{" "}
+              {DEMO_WRITE_CAPS.maxSol} {DEMO_WRITE_CAPS.symbol} per call. Solana
+              requires the sender to keep ~0.00089 SOL above any transfer for
+              rent-exempt minimum — fund <strong>at least 0.01 SOL</strong> for
+              the cap to actually be reachable. The agent wallet is also shared
+              across all visitors of this deployment — only fund what you're
+              comfortable losing to the demo.
+            </span>
+          </div>
+        )}
 
         {signature ? (
           <div className="flex flex-col gap-2">
@@ -146,7 +163,7 @@ export function FundAgentDialog({
                 id="fund-amount"
                 type="number"
                 step="0.001"
-                min="0"
+                min="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 disabled={isSending}
