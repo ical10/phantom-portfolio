@@ -56,9 +56,26 @@ export function ConnectedDashboard() {
     <main className="mx-auto flex w-full max-w-2xl lg:max-w-3xl flex-col gap-8 px-6 py-12">
       <BackToHome />
       <header className="flex flex-col gap-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Connected Account Mode
-        </p>
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Connected Account Mode
+          </p>
+          {(solanaAddress || ethereumAddress) && (
+            <div className="flex flex-col gap-0.5 break-all font-mono text-xs text-muted-foreground">
+              {solanaAddress && (
+                <p>
+                  <span className="text-foreground">solana</span> {solanaAddress}
+                </p>
+              )}
+              {ethereumAddress && (
+                <p>
+                  <span className="text-foreground">ethereum</span>{" "}
+                  {ethereumAddress}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
         <PortfolioTotal
           solanaAddress={solanaAddress}
           evmAddress={ethereumAddress}
