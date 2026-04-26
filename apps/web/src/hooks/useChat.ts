@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   ChatMessage,
   PortfolioContext,
@@ -6,6 +6,21 @@ import type {
 } from "@portfolio/shared";
 
 const CHAT_API_URL = import.meta.env.VITE_CHAT_API_URL ?? "";
+const STORAGE_PREFIX = "phantom-portfolio:chat:";
+
+// Hydrate persisted history at mount. Returns [] for SSR / no-key /
+// invalid blobs; we don't try to reconcile partial saves.
+function loadStoredMessages(key: string | null): ChatMessage[] {
+  if (!key || typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_PREFIX + key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as ChatMessage[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 type UseChatArgs = {
   // Called once per sendMessage at the moment of send, so the latest
@@ -14,6 +29,18 @@ type UseChatArgs = {
   // Read at send time so the chat picks up funding state
   // changes mid-conversation without re-creating sendMessage.
   getWriteMode: () => boolean;
+  // Stable per-context key (e.g. connected wallet address). Used to
+  // namespace persisted history so wallet A's chat doesn't leak into
+  // wallet B's. Pass null to disable persistence (e.g. watcher mode).
+  storageKey: string | null;
+  // Optional hook fired when a tool-result event lands. Used by the
+  // host to invalidate caches that the tool may have mutated (e.g.
+  // refetch the agent wallet balance after a successful `transfer`).
+  onToolResult?: (event: {
+    name: string;
+    output: unknown;
+    isError: boolean;
+  }) => void;
 };
 
 type UseChatResult = {
@@ -28,8 +55,18 @@ type UseChatResult = {
 export function useChat({
   buildPortfolio,
   getWriteMode,
+  storageKey,
+  onToolResult,
 }: UseChatArgs): UseChatResult {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Mirror the callback into a ref so we can read the latest closure
+  // inside sendMessage without making sendMessage depend on it.
+  const onToolResultRef = useRef(onToolResult);
+  onToolResultRef.current = onToolResult;
+  // Hydrate from localStorage on first mount, then re-hydrate when the
+  // storage key changes (wallet swap). When key is null we just clear.
+  const [messages, setMessages] = useState<ChatMessage[]>(() =>
+    loadStoredMessages(storageKey),
+  );
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -38,6 +75,34 @@ export function useChat({
   // every token append and churn consumers like EmptyState's onPick).
   const messagesRef = useRef<ChatMessage[]>(messages);
   messagesRef.current = messages;
+
+  // Persist on every messages change. Skipped on the initial mount when
+  // we just hydrated — but writing the same blob back is harmless, so we
+  // don't bother short-circuiting it. While streaming we'd thrash storage
+  // on every token; the typewriter buffer in sendMessage already coarsens
+  // updates to ~60Hz, but we still skip persistence mid-stream and flush
+  // once the stream ends.
+  useEffect(() => {
+    if (!storageKey || typeof window === "undefined") return;
+    if (isStreaming) return;
+    try {
+      window.localStorage.setItem(
+        STORAGE_PREFIX + storageKey,
+        JSON.stringify(messages),
+      );
+    } catch {
+      // localStorage can throw on quota / privacy mode — best effort.
+    }
+  }, [messages, storageKey, isStreaming]);
+
+  // On wallet swap, swap in the new wallet's history.
+  const lastKeyRef = useRef(storageKey);
+  useEffect(() => {
+    if (storageKey === lastKeyRef.current) return;
+    lastKeyRef.current = storageKey;
+    setMessages(loadStoredMessages(storageKey));
+    setError(null);
+  }, [storageKey]);
 
   const abort = useCallback(() => {
     abortRef.current?.abort();
@@ -48,7 +113,14 @@ export function useChat({
     abort();
     setMessages([]);
     setError(null);
-  }, [abort]);
+    if (storageKey && typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(STORAGE_PREFIX + storageKey);
+      } catch {
+        // ignore
+      }
+    }
+  }, [abort, storageKey]);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -150,6 +222,11 @@ export function useChat({
                 isError: event.isError,
               },
             ]);
+            onToolResultRef.current?.({
+              name: event.name,
+              output: event.output,
+              isError: event.isError,
+            });
             return;
           case "error":
             setError(event.message);

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -77,9 +78,32 @@ export function ChatPanel({ open, solanaAddress, evmAddress }: Props) {
   const isFundedRef = useRef(agent.isFunded);
   isFundedRef.current = agent.isFunded;
 
+  // Persist chat history per-wallet so a refresh doesn't blow away the
+  // conversation. Keyed by Solana address first, EVM second; null in
+  // watcher mode (no connected wallet to scope to).
+  const storageKey = solanaAddress ?? evmAddress ?? null;
+
+  // After every tool result, invalidate caches the tool may have touched.
+  // For now: a successful `transfer` mutates the agent wallet's SOL
+  // balance — refetch it so the strip updates without a manual reload.
+  const queryClient = useQueryClient();
+  const onToolResult = useCallback(
+    (e: { name: string; output: unknown; isError: boolean }) => {
+      if (e.isError) return;
+      if (e.name === "transfer" && agent.solanaAddress) {
+        void queryClient.invalidateQueries({
+          queryKey: ["solana-balances", agent.solanaAddress],
+        });
+      }
+    },
+    [queryClient, agent.solanaAddress],
+  );
+
   const { messages, sendMessage, abort, reset, isStreaming, error } = useChat({
     buildPortfolio,
     getWriteMode: () => isFundedRef.current,
+    storageKey,
+    onToolResult,
   });
 
   // Sentinel at the end of the message list — scroll into view on append
