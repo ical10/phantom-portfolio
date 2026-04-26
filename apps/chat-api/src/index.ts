@@ -21,7 +21,7 @@ app.use(
 );
 
 app.get("/health", (c) => c.json({ ok: true }));
-// /health stays unmetered — Railway probes shouldn't count toward the cap.
+// /health stays unmetered — platform health probes shouldn't count toward the cap.
 app.use("/chat/*", rateLimit);
 app.use("/agent-wallet/*", rateLimit);
 app.route("/chat", chatRoute);
