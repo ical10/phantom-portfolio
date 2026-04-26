@@ -53,6 +53,22 @@ export const ChatRequestSchema = z.object({
   writeMode: z.boolean().default(false),
 });
 
+// Demo spend caps — kept in shared so the UI can display the same numbers
+// the server enforces. This is a proof-of-concept: only the `transfer`
+// MCP tool is exposed as a write tool, and only for native SOL on Solana
+// mainnet up to `maxSol`.
+export const DEMO_WRITE_CAPS: {
+  tool: string;
+  networkId: string;
+  symbol: string;
+  maxSol: number;
+} = {
+  tool: "transfer",
+  networkId: "solana:mainnet",
+  symbol: "SOL",
+  maxSol: 0.01,
+};
+
 // SSE payload from /chat.
 export const StreamEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("token"), delta: z.string() }),

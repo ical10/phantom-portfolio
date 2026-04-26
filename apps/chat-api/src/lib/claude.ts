@@ -13,6 +13,7 @@ import type {
   StreamEvent,
 } from "@portfolio/shared";
 import { requireEnv } from "@portfolio/shared";
+import { DEMO_WRITE_CAPS, requireEnv } from "@portfolio/shared";
 
 const ANTHROPIC_API_KEY = requireEnv(
   process.env.ANTHROPIC_API_KEY,
@@ -34,25 +35,9 @@ const ALLOWED_READ_TOOLS = new Set([
 ]);
 
 // Write tools — gated behind `writeMode` (set after the user funds the
-// agent wallet) AND a per-call user approval handled by the permission
-// flow.
-const ALLOWED_WRITE_TOOLS = new Set([
-  "transfer_tokens",
-  "buy_token",
-  "portfolio_rebalance",
-  "send_solana_transaction",
-  "send_evm_transaction",
-  "sign_solana_message",
-  "sign_evm_personal_message",
-  "sign_evm_typed_data",
-  "open_perp_position",
-  "close_perp_position",
-  "cancel_perp_order",
-  "update_perp_leverage",
-  "deposit_to_hyperliquid",
-  "transfer_spot_to_perps",
-  "withdraw_from_perps",
-]);
+// agent wallet). For this proof-of-concept demo, only `transfer_tokens`
+// is exposed, and the per-call guard below caps it at a small SOL amount.
+const ALLOWED_WRITE_TOOLS = new Set([DEMO_WRITE_CAPS.tool]);
 
 const MAX_TURNS = 5;
 const MAX_TOKENS = 4096;
