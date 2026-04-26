@@ -7,8 +7,8 @@ export function EmptyState({ hasWallet, onPick }: EmptyStateProps) {
   const suggestions = hasWallet
     ? [
         "What tokens do I hold?",
-        "Simulate a swap of 0.1 SOL to USDC",
-        "Show my Hyperliquid positions",
+        "Show me the top Hyperliquid perp markets",
+        "What chains does the agent wallet support?",
       ]
     : ["Tell me about Phantom MCP", "What can this chat do?"];
 
