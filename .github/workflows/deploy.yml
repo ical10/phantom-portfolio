@@ -1,0 +1,81 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Only run one deploy at a time per branch — if you push twice in quick
+# succession, the older run is cancelled so the latest commit wins.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Detect which service(s) actually changed so unrelated commits
+  # (README tweaks, the other app, etc.) don't trigger a needless redeploy.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      chat-api: ${{ steps.filter.outputs.chat-api }}
+      web: ${{ steps.filter.outputs.web }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            chat-api:
+              - 'apps/chat-api/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            web:
+              - 'apps/web/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            shared:
+              - 'packages/shared/**'
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web exec tsc --noEmit
+      - run: pnpm --filter chat-api exec tsc --noEmit
+
+  deploy-chat-api:
+    needs: [changes, typecheck]
+    # Redeploy on direct chat-api changes OR shared-package changes
+    # (chat-api imports @portfolio/shared, so a shared edit affects it).
+    if: needs.changes.outputs.chat-api == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Railway CLI
+        run: bash <(curl -fsSL https://railway.app/install.sh)
+      - name: Deploy chat-api
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service chat-api --ci
+
+  deploy-web:
+    needs: [changes, typecheck]
+    if: needs.changes.outputs.web == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Railway CLI
+        run: bash <(curl -fsSL https://railway.app/install.sh)
+      - name: Deploy web
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service web --ci
