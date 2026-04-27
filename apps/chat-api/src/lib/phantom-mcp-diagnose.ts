@@ -41,11 +41,46 @@ export async function diagnoseMcpSpawn(): Promise<void> {
       resolve();
     });
 
+    // Drive the MCP protocol: send initialize, then tools/list. If the
+    // session validation fails inside MCP's initialize handler, this is
+    // when we'll see the error message in stderr.
+    setTimeout(() => {
+      if (!child.stdin || child.stdin.destroyed) return;
+      const init = JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "diag", version: "0.0.1" },
+        },
+      });
+      child.stdin.write(init + "\n");
+      console.log("[mcp-diag] sent initialize");
+    }, 500);
+
+    setTimeout(() => {
+      if (!child.stdin || child.stdin.destroyed) return;
+      const initialized = JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/initialized",
+      });
+      const list = JSON.stringify({
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/list",
+      });
+      child.stdin.write(initialized + "\n");
+      child.stdin.write(list + "\n");
+      console.log("[mcp-diag] sent initialized + tools/list");
+    }, 1500);
+
     setTimeout(() => {
       if (child.exitCode === null && !child.killed) {
-        console.log("[mcp-diag] 5s timeout — killing child (it was still alive)");
+        console.log("[mcp-diag] 8s timeout — killing child (it was still alive)");
         child.kill("SIGKILL");
       }
-    }, 5000).unref();
+    }, 8000).unref();
   });
 }
