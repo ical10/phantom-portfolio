@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { bootstrapPhantomSession } from "./lib/phantom-bootstrap";
+import { diagnoseMcpSpawn } from "./lib/phantom-mcp-diagnose";
 import { rateLimit } from "./middleware/rateLimit";
 import { chatRoute } from "./routes/chat";
 import { agentWalletRoute } from "./routes/agentWallet";
@@ -10,6 +11,10 @@ import { agentWalletRoute } from "./routes/agentWallet";
 // before any MCP subprocess is spawned. No-op locally where ~/.phantom-mcp
 // already exists. See apps/chat-api/src/lib/phantom-bootstrap.ts.
 bootstrapPhantomSession();
+
+// One-shot diagnostic to capture MCP startup output. Fire-and-forget so
+// the HTTP server doesn't wait on it. Remove once MCP is stable.
+void diagnoseMcpSpawn();
 
 const app = new Hono();
 
