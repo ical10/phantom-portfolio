@@ -5,3 +5,10 @@ packages:
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+  # @phantom/cli's postinstall runs patch-package against `incur`, which
+  # pnpm hoists under .pnpm/ rather than top-level node_modules — so the
+  # patch step fails with "Patch file found for package incur which is
+  # not present at node_modules/incur" and aborts the whole install on
+  # Railway. We don't need any of @phantom/cli's patches at runtime; the
+  # MCP server boots from its compiled dist/ regardless.
+  - "@phantom/cli"
