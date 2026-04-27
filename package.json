@@ -2,6 +2,7 @@
   "name": "phantom-portfolio",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter chat-api dev",
@@ -11,5 +12,10 @@
     "build": "pnpm run \"/^build:/\"",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm --filter web lint"
+  },
+  "pnpm": {
+    "neverBuiltDependencies": [
+      "@phantom/cli"
+    ]
   }
 }
