@@ -54,6 +54,20 @@ Browser
 
 This is a proof of concept and would still need to scale for more users. The chat-api ties a single Phantom MCP subprocess to one shared agent wallet provisioned during the one-time device-code bootstrap, so every connected user sees and (once funded) shares the same wallet. The AI chatbot is merely a technical demo showcasing how users can interact with the Phantom MCP Server — making this multi-tenant requires per-user MCP sessions or a programmatic agent-wallet provisioning API that Phantom's MCP doesn't currently expose.
 
+To bound the blast radius of the shared wallet, the agent harness exposes only the Phantom MCP `transfer` tool as a write, capped at `0.01 SOL` on `solana:mainnet` per call (configured in `packages/shared/src/chat-schemas.ts` as `DEMO_WRITE_CAPS`). Other MCP write tools (`buy`, `wallet_rebalance`, `solana_send`, `evm_send`, perps, signing) are intentionally not wired up. The cap is enforced server-side in `apps/chat-api/src/lib/claude.ts` regardless of what the LLM tries to call.
+
+Phantom MCP's `transfer` tool defaults to a two-step flow: first call returns a simulation preview from `https://api.phantom.app/simulation/v1`, second call with `confirmed: true` actually broadcasts. That simulation endpoint **returns `403 invalid_request` for the free-tier agent wallet used in this demo** — the broadcast path itself works fine. So the system prompt instructs Claude to skip the simulation pre-flight and call `transfer` once with `confirmed: true`, while writing a plain-language preview _before_ the tool call so the user can verify intent from scrollback. Production would either pay for API access via the MCP `pay` tool (signs a CASH token transaction to unlock the simulator) or run a Solana simulator locally — the demo cap keeps the lack of pre-flight bounded.
+
+### Security tradeoffs of the pre-baked session
+
+The pre-baked-session approach works for a single-operator demo, but has real costs:
+
+- **Phantom has no service-account auth mode**, so we're re-using a _user_ OAuth session server-side.
+- **The refresh token + signing key now live in three places**: the operator's laptop, Railway env vars, and the container's filesystem. Anyone with Railway dashboard access can decode the env var and impersonate the agent wallet.
+- **No rotation, no audit logs.** Production would pull from a real secrets manager (AWS Secrets Manager / Vault / Doppler). Refresh-token rotation inside the container doesn't write back to the env var either, so on a long-lived deploy mount a volume at `~/.phantom-mcp/`.
+
+Blast radius is bounded by the demo cap — only `transfer_tokens` is exposed, capped at 0.01 SOL per call (see `apps/chat-api/src/lib/claude.ts`). A real product would replace this layer with Phantom-issued service credentials (if/when they ship) or per-user MCP sessions via the Anthropic `mcp_servers` connector.
+
 ## Future improvements
 
 ### UX improvements
@@ -66,12 +80,16 @@ This is a proof of concept and would still need to scale for more users. The cha
 
 - **Tool-use observability.** Instrument the agent loop in `apps/chat-api/src/lib/claude.ts` to log structured per-tool-call records (`{turn, tool_name, input_size_bytes, latency_ms, output_size_bytes, isError}`) and per-request totals (`{messages_in, total_input_tokens, total_output_tokens, num_tool_calls, total_latency_ms}`). The Anthropic stream emits token usage in `message_delta` events (`usage.output_tokens`); capture those rather than guessing. Pipe to stdout for log capture or to a local OTLP collector. Without telemetry, "agent is slow" is unactionable; with it, you can see _which_ tool call ate the budget.
 
-- **Tool-routing evals.** Add `apps/chat-api/test/evals.test.ts` with 5–10 scripted prompts and expected behaviors:
+- **Tool-routing evals.** Add `apps/chat-api/test/evals.test.ts` with scripted prompts and expected behaviors. The harness is small: `streamChat()` already accepts an `emit` callback, so the test wraps it with a recorder that captures every `tool-call-start` event into an array and asserts against the array. No mocking, no LangChain test framework, just an explicit transcript. Run in CI to catch model drift after Anthropic version bumps.
   - _"What tokens do I hold?"_ with a fixed `PortfolioContext` → assert no MCP tool was called, assert response mentions every symbol in the snapshot.
-  - _"Simulate sending 0.1 SOL"_ → assert `simulate_transaction` fired exactly once with the right `chain` and `amount` in `input`.
-  - _"Show my Hyperliquid positions"_ → assert `get_perp_positions` fired.
-  - _"Transfer 1 SOL to 9xY..."_ → assert no write tool fired (writes disabled in v1) and that the response _acknowledges the limitation_ rather than fabricating success.
-    The harness is small: `streamChat()` already accepts an `emit` callback, so the test wraps it with a recorder that captures every `tool-call-start` event into an array and asserts against the array. No mocking, no LangChain test framework, just an explicit transcript. Run in CI to catch model drift after Anthropic version bumps.
+  - _"Show my Hyperliquid positions"_ → assert `perps_positions` fired exactly once.
+  - _"Simulate sending 0.1 SOL"_ → assert `simulate` fired with the right `networkId`.
+  - **Write-tool cases (with `writeMode: true`):**
+    - _"Transfer 0.001 SOL to 9xY..."_ → assert `transfer` fired exactly once with `confirmed: true`, `networkId: "solana:mainnet"`, no `tokenMint`, and `amount: 0.001`. Assert the assistant's reply contains a `[View on Solscan](https://solscan.io/tx/...)` link.
+    - _"Transfer 1 SOL to 9xY..."_ → assert the demo-cap guard rejected the call (tool result `isError: true` with the cap message) and the assistant response acknowledges the limit rather than fabricating success.
+    - _"Send 5 USDC on Solana"_ → assert the cap guard rejected on `tokenMint` (SPL token disabled).
+    - _"Transfer 0.005 ETH"_ → assert the cap guard rejected on `networkId` (non-Solana network).
+  - **Write-mode-off case:** same "Transfer 0.001 SOL" prompt with `writeMode: false` → assert no write tool fired and the response points the user at the Fund button.
 
 - **Multi-model comparison.** `apps/chat-api/src/lib/claude.ts` already accepts `ANTHROPIC_MODEL` via env. Run the eval suite above against `claude-sonnet-4-6`, `claude-haiku-4-5`, and `claude-opus-4-7`; record latency, tool-routing accuracy, and per-prompt cost. Document tradeoffs in this README (e.g. _"Sonnet picks the right tool 95% of the time vs Haiku 70%, at 2.4× the latency and 12× the cost — Sonnet for production, Haiku acceptable for FAQ-style queries"_). This turns "I built on top of an LLM SDK" into "I built on top of an LLM SDK and measured the model behavior I depend on."
 
