@@ -14,7 +14,7 @@ TBA.
 
 ## Architecture
 
-Two services deployed on a platform of your choice. The browser talks to each directly: `apps/web` for dashboard pages and the existing balance/price server functions; `apps/chat-api` for the SSE chat stream and agent-wallet metadata. The chat-api process holds a long-lived MCP subprocess so the ~40s device-code-auth cold-start happens once per deploy, not per request.
+Two services deployed on a platform of your choice. The browser talks to each directly: `apps/web` for dashboard pages and the existing balance/price server functions; `apps/chat-api` for the SSE chat stream and agent-wallet metadata. The chat-api boots from pre-baked MCP credentials (see § Known limitations), so there's no interactive auth on the host.
 
 ```
 Browser
@@ -25,7 +25,7 @@ Browser
   └── fetch SSE ──────────────────────> apps/chat-api (Hono)
           ├── POST /chat (rate-limited) ── calls Anthropic Messages API
           ├── GET /agent-wallet/addresses
-          └── spawns @phantom/mcp-server (stdio child) ── Phantom KMS (device-code OAuth)
+          └── spawns @phantom/mcp-server (stdio child) ── Phantom KMS
 ```
 
 ## Tech stack
@@ -93,6 +93,6 @@ Blast radius is bounded by the demo cap — only `transfer_tokens` is exposed, c
 
 - **Multi-model comparison.** `apps/chat-api/src/lib/claude.ts` already accepts `ANTHROPIC_MODEL` via env. Run the eval suite above against `claude-sonnet-4-6`, `claude-haiku-4-5`, and `claude-opus-4-7`; record latency, tool-routing accuracy, and per-prompt cost. Document tradeoffs in this README (e.g. _"Sonnet picks the right tool 95% of the time vs Haiku 70%, at 2.4× the latency and 12× the cost — Sonnet for production, Haiku acceptable for FAQ-style queries"_). This turns "I built on top of an LLM SDK" into "I built on top of an LLM SDK and measured the model behavior I depend on."
 
-- **MCP warm-up on boot.** Currently the first chat request after a chat-api boot pays a ~40s cold start (`npx -y @phantom/mcp-server` download + spawn + device-code session restore). Move the `getMcpClient()` call into a top-level await on server boot so the warm-up cost moves out of the critical path. Trade-off: server boot is slower, but P50 first-message latency drops dramatically.
+- **MCP warm-up on boot.** The first chat request after a chat-api boot still pays a ~1–2s cold start while MCP spawns and validates the cached session against Phantom KMS. Move the `getMcpClient()` call into a top-level await on server boot so the warm-up cost moves out of the critical path. Trade-off: server boot is slightly slower, but P50 first-message latency drops to a clean stream.
 
 - **Per-tool timeouts and retries.** `TOOL_CALL_TIMEOUT_MS = 30_000` is global; some MCP tools (e.g. `simulate_transaction` against a slow RPC) legitimately take longer than `get_wallet_addresses`. A per-tool timeout map plus 1× retry on transient errors would make the agent feel more reliable without inflating the global ceiling.

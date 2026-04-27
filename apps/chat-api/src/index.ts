@@ -10,7 +10,7 @@ bootstrapPhantomSession();
 
 const app = new Hono();
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:5173")
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:3000")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
@@ -33,6 +33,5 @@ app.route("/agent-wallet", agentWalletRoute);
 const port = Number(process.env.PORT ?? 8787);
 
 serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`[chat-api] listening on http://localhost:${info.port}`);
-  console.log(`[chat-api] allowed origins: ${allowedOrigins.join(", ")}`);
+  console.log(`[chat-api] listening on :${info.port}`);
 });

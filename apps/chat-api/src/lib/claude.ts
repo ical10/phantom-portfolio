@@ -16,11 +16,8 @@ import type {
 } from "@portfolio/shared";
 import { DEMO_WRITE_CAPS, requireEnv } from "@portfolio/shared";
 
-// Resolve the @phantom/mcp-server bin at module load. Pre-installing
-// the package as a direct dep (instead of `npx -y @phantom/mcp-server@latest`)
-// removes a per-spawn npm download that takes longer than the SDK's
-// protocol-init timeout on cold containers — that race was the root
-// cause of `MCP error -32000: Connection closed` on Railway.
+// Resolve the bin at module load — npx-on-demand spawns are too slow
+// for the MCP SDK's protocol handshake on cold containers.
 const _require = createRequire(import.meta.url);
 const PHANTOM_MCP_BIN = path.join(
   path.dirname(_require.resolve("@phantom/mcp-server/package.json")),
