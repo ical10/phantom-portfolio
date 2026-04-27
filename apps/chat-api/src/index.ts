@@ -1,9 +1,15 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { bootstrapPhantomSession } from "./lib/phantom-bootstrap";
 import { rateLimit } from "./middleware/rateLimit";
 import { chatRoute } from "./routes/chat";
 import { agentWalletRoute } from "./routes/agentWallet";
+
+// Materialize cached Phantom MCP session files from env vars (if set)
+// before any MCP subprocess is spawned. No-op locally where ~/.phantom-mcp
+// already exists. See apps/chat-api/src/lib/phantom-bootstrap.ts.
+bootstrapPhantomSession();
 
 const app = new Hono();
 
