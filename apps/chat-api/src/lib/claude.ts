@@ -76,27 +76,16 @@ async function getMcpClient(): Promise<Client> {
   if (mcpClient) return mcpClient;
   if (mcpClientPromise) return mcpClientPromise;
   const promise = (async () => {
-    // Pipe stderr explicitly so MCP's [SessionManager] lines + crash
-    // reasons reach our stderr → Railway logs. Default 'inherit' should
-    // do this, but observed behavior on Railway shows MCP exiting silently
-    // — explicit pipe + forward removes any ambiguity about who's
-    // swallowing the bytes.
     const transport = new StdioClientTransport({
-      command: process.execPath, // node binary
+      command: process.execPath,
       args: [PHANTOM_MCP_BIN],
       env: process.env as Record<string, string>,
-      stderr: "pipe",
     });
     const client = new Client(
       { name: "phantom-portfolio-chat", version: "0.1.0" },
       { capabilities: {} },
     );
     await client.connect(transport);
-    if (transport.stderr) {
-      transport.stderr.on("data", (chunk: Buffer) => {
-        process.stderr.write(`[mcp:stderr] ${chunk.toString()}`);
-      });
-    }
     const { tools } = await client.listTools();
     mcpTools = tools
       .filter(
