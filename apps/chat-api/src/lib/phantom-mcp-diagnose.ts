@@ -1,17 +1,26 @@
 import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
+import * as path from "node:path";
+
+const _require = createRequire(import.meta.url);
+const PHANTOM_MCP_BIN = path.join(
+  path.dirname(_require.resolve("@phantom/mcp-server/package.json")),
+  "dist/bin.js",
+);
 
 /**
- * One-shot diagnostic: spawn the Phantom MCP CLI directly and capture
- * stdout/stderr/exit-code for ~5 seconds. Bypasses @modelcontextprotocol's
- * StdioClientTransport so there's no race window for stderr listener
- * attachment — every byte the MCP child writes reaches our logs.
+ * One-shot diagnostic: spawn the Phantom MCP server directly (via the
+ * pre-installed package, bypassing `npx -y` which adds a slow download
+ * step on cold containers) and capture stdout/stderr/exit-code for ~30
+ * seconds. Drives the MCP protocol with initialize + tools/list so the
+ * SessionManager validation path actually fires.
  *
  * Call once at boot. Remove this file once MCP is stable on the host.
  */
 export async function diagnoseMcpSpawn(): Promise<void> {
   return new Promise((resolve) => {
-    console.log("[mcp-diag] spawning: npx -y @phantom/mcp-server@latest");
-    const child = spawn("npx", ["-y", "@phantom/mcp-server@latest"], {
+    console.log(`[mcp-diag] spawning: node ${PHANTOM_MCP_BIN}`);
+    const child = spawn(process.execPath, [PHANTOM_MCP_BIN], {
       env: process.env,
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -78,9 +87,11 @@ export async function diagnoseMcpSpawn(): Promise<void> {
 
     setTimeout(() => {
       if (child.exitCode === null && !child.killed) {
-        console.log("[mcp-diag] 8s timeout — killing child (it was still alive)");
+        console.log(
+          "[mcp-diag] 30s timeout — killing child (it was still alive)",
+        );
         child.kill("SIGKILL");
       }
-    }, 8000).unref();
+    }, 30000).unref();
   });
 }

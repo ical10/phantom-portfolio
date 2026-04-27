@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+import * as path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import type {
   MessageParam,
@@ -13,6 +15,17 @@ import type {
   StreamEvent,
 } from "@portfolio/shared";
 import { DEMO_WRITE_CAPS, requireEnv } from "@portfolio/shared";
+
+// Resolve the @phantom/mcp-server bin at module load. Pre-installing
+// the package as a direct dep (instead of `npx -y @phantom/mcp-server@latest`)
+// removes a per-spawn npm download that takes longer than the SDK's
+// protocol-init timeout on cold containers — that race was the root
+// cause of `MCP error -32000: Connection closed` on Railway.
+const _require = createRequire(import.meta.url);
+const PHANTOM_MCP_BIN = path.join(
+  path.dirname(_require.resolve("@phantom/mcp-server/package.json")),
+  "dist/bin.js",
+);
 
 const ANTHROPIC_API_KEY = requireEnv(
   process.env.ANTHROPIC_API_KEY,
@@ -69,8 +82,8 @@ async function getMcpClient(): Promise<Client> {
     // — explicit pipe + forward removes any ambiguity about who's
     // swallowing the bytes.
     const transport = new StdioClientTransport({
-      command: "npx",
-      args: ["-y", "@phantom/mcp-server@latest"],
+      command: process.execPath, // node binary
+      args: [PHANTOM_MCP_BIN],
       env: process.env as Record<string, string>,
       stderr: "pipe",
     });
