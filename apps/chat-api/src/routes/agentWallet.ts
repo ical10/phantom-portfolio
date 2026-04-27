@@ -25,6 +25,7 @@ agentWalletRoute.get("/addresses", async (c) => {
     }
     return c.json(parsed.data);
   } catch (e) {
+    console.error("[agent-wallet]", e);
     return c.json(
       { error: e instanceof Error ? e.message : "Unknown error" },
       500,

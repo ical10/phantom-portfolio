@@ -20,17 +20,45 @@ const STAMPER_FILE = path.join(DIR, "auth2-stamper.json");
 export function bootstrapPhantomSession(): void {
   const sessionB64 = process.env.PHANTOM_SESSION_JSON_B64;
   const stamperB64 = process.env.PHANTOM_AUTH2_STAMPER_JSON_B64;
-  if (!sessionB64 || !stamperB64) return;
+  if (!sessionB64 || !stamperB64) {
+    console.log(
+      `[mcp-bootstrap] env vars unset (session=${!!sessionB64}, stamper=${!!stamperB64}); skipping. dir=${DIR}`,
+    );
+    return;
+  }
 
   fs.mkdirSync(DIR, { recursive: true, mode: 0o700 });
+  const wrote: string[] = [];
+  const skipped: string[] = [];
+
   if (!fs.existsSync(SESSION_FILE)) {
     fs.writeFileSync(SESSION_FILE, Buffer.from(sessionB64, "base64"), {
       mode: 0o600,
     });
+    wrote.push("session.json");
+  } else {
+    skipped.push("session.json");
   }
+
   if (!fs.existsSync(STAMPER_FILE)) {
     fs.writeFileSync(STAMPER_FILE, Buffer.from(stamperB64, "base64"), {
       mode: 0o600,
     });
+    wrote.push("auth2-stamper.json");
+  } else {
+    skipped.push("auth2-stamper.json");
   }
+
+  // Log file sizes so a malformed/truncated env var (e.g., a copy-paste
+  // that lost trailing chars) is detectable in deploy logs.
+  const sizes = fs.readdirSync(DIR).map((f) => {
+    try {
+      return `${f}=${fs.statSync(`${DIR}/${f}`).size}b`;
+    } catch {
+      return f;
+    }
+  });
+  console.log(
+    `[mcp-bootstrap] dir=${DIR} wrote=[${wrote.join(",")}] skipped=[${skipped.join(",")}] files=[${sizes.join(",")}]`,
+  );
 }
