@@ -7,7 +7,7 @@ A multi-chain portfolio dashboard with a Phantom MCP-backed AI chat, powered by 
 
 ## Live demo
 
-TBA.
+[![Watch the demo on Vimeo](https://vumbnail.com/1187193998.jpg)](https://vimeo.com/1187193998)
 
 ## Engineering highlights
 
