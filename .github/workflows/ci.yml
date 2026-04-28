@@ -31,17 +31,13 @@ jobs:
         run: pnpm --filter chat-api exec tsc --noEmit
       - name: Test (with coverage)
         run: pnpm test:coverage
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          files: >-
-            apps/chat-api/coverage/lcov.info,
-            apps/web/coverage/lcov.info,
-            packages/shared/coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: apps/chat-api/coverage/lcov.info,apps/web/coverage/lcov.info,packages/shared/coverage/lcov.info
           flags: unittests
           fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       - name: Build web
         run: pnpm --filter web build
       - name: Build chat-api
