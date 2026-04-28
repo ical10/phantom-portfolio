@@ -33,7 +33,7 @@ agentWalletRoute.get("/addresses", async (c) => {
   }
 });
 
-function extractWalletAddresses(mcpResult: unknown): unknown {
+export function extractWalletAddresses(mcpResult: unknown): unknown {
   // Best effort: pull first text block, try JSON-parse, otherwise return
   // raw so AgentWalletAddressesResponseSchema parse fails loud with context.
   const r = mcpResult as {

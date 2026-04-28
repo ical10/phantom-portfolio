@@ -13,10 +13,9 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov", "json-summary"],
       reportsDirectory: "./coverage",
-      // Only count the units we currently test. Excluding the rest avoids
-      // misleadingly low overall coverage numbers — e.g. routes/components
-      // would need integration tests that aren't in scope yet.
-      include: ["src/lib/address.ts"],
+      // Limit to pure utility modules under src/lib — routes, components,
+      // hooks, and server fns need integration tests we haven't written.
+      include: ["src/lib/address.ts", "src/lib/utils.ts"],
     },
   },
 });
