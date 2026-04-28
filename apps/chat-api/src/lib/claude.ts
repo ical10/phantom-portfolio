@@ -272,7 +272,7 @@ ${writeRule}
  * Our history has role-tagged tool-call / tool-result entries; Anthropic
  * groups them as content blocks within assistant / user messages.
  */
-function translateHistory(msgs: ChatMessage[]): MessageParam[] {
+export function translateHistory(msgs: ChatMessage[]): MessageParam[] {
   const out: MessageParam[] = [];
 
   // Helpers always treat content as ContentBlockParam[]. We never mix
