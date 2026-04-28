@@ -33,25 +33,16 @@ Browser
 
 ## Tech stack
 
-┌──────────┬────────────────────────────────────────────────────────┬──────────────────────────────┐
-│ Layer │ Tech │ Notes │
-├──────────┼────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ Frontend │ TanStack Start, React 19, Tailwind 4, shadcn/ui │ SSR-on-first-load, SPA after │
-├──────────┼────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ Wallet │ @phantom/react-sdk v2 │ Connect + watcher modes │
-├──────────┼────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ Solana │ @solana/web3.js, @solana/spl-token, Helius DAS │ Token-2022 supported │
-├──────────┼────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ EVM │ viem, Alchemy │ Ethereum + Polygon │
-├──────────┼────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ Prices │ Jupiter (Solana), CoinGecko (EVM) │ Both LRU-cached server-side │
-├──────────┼────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ LLM │ @anthropic-ai/sdk │ Custom tool-call loop │
-├──────────┼────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ MCP │ @phantom/mcp-server (stdio), @modelcontextprotocol/sdk │ Module-singleton subprocess │
-├──────────┼────────────────────────────────────────────────────────┼──────────────────────────────┤
-│ Backend │ Hono │ SSE streaming, IP rate limit │
-└──────────┴────────────────────────────────────────────────────────┴──────────────────────────────┘
+| Layer    | Tech                                                     | Notes                          |
+| -------- | -------------------------------------------------------- | ------------------------------ |
+| Frontend | TanStack Start, React 19, Tailwind 4, shadcn/ui          | SSR-on-first-load, SPA after   |
+| Wallet   | `@phantom/react-sdk` v2                                  | Connect + watcher modes        |
+| Solana   | `@solana/web3.js`, `@solana/spl-token`, Helius DAS       | Token-2022 supported           |
+| EVM      | viem, Alchemy                                            | Ethereum + Polygon             |
+| Prices   | Jupiter (Solana), CoinGecko (EVM)                        | Both LRU-cached server-side    |
+| LLM      | `@anthropic-ai/sdk`                                      | Custom tool-call loop          |
+| MCP      | `@phantom/mcp-server` (stdio), `@modelcontextprotocol/sdk` | Module-singleton subprocess    |
+| Backend  | Hono                                                     | SSE streaming, IP rate limit   |
 
 ## Known limitations
 
