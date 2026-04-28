@@ -134,7 +134,7 @@ async function getMcpClient(): Promise<Client> {
 // the call is allowed, or a human-readable rejection reason otherwise.
 // Matches the Phantom MCP `transfer` schema: networkId (CAIP-2), tokenMint
 // (omit for native), amount (number|string), amountUnit ("ui" | "base").
-function checkWriteCap(name: string, input: unknown): string | null {
+export function checkWriteCap(name: string, input: unknown): string | null {
   if (name !== DEMO_WRITE_CAPS.tool) {
     return `Tool "${name}" is not enabled in this demo build.`;
   }

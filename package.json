@@ -11,11 +11,17 @@
     "build:api": "pnpm --filter chat-api build",
     "build": "pnpm run \"/^build:/\"",
     "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --workspace-concurrency=1 test",
+    "test:coverage": "pnpm -r --workspace-concurrency=1 test:coverage",
     "lint": "pnpm --filter web lint"
   },
   "pnpm": {
     "neverBuiltDependencies": [
       "@phantom/cli"
     ]
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.5",
+    "vitest": "^4.1.5"
   }
 }

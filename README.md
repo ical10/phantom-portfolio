@@ -1,5 +1,8 @@
 # Smart Portfolio
 
+[![CI](https://github.com/ical10/phantom-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/ical10/phantom-portfolio/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ical10/phantom-portfolio/branch/main/graph/badge.svg)](https://codecov.io/gh/ical10/phantom-portfolio)
+
 A multi-chain portfolio dashboard with a Phantom MCP-backed AI chat, powered by CoinGecko and Jupiter for prices feed.
 
 ## Live demo

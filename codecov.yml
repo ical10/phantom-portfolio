@@ -1,0 +1,35 @@
+coverage:
+  status:
+    project:
+      default:
+        # Don't fail PRs for small drops while the suite is bootstrapping.
+        target: auto
+        threshold: 2%
+    patch:
+      default:
+        # New code in PRs should be tested. 70% is a soft floor we can
+        # raise once the suite covers more of the surface.
+        target: 70%
+        threshold: 5%
+
+# Map each package's lcov to a flag so Codecov shows per-package coverage.
+flag_management:
+  default_rules:
+    carryforward: true
+  individual_flags:
+    - name: chat-api
+      paths: [apps/chat-api/src]
+    - name: web
+      paths: [apps/web/src]
+    - name: shared
+      paths: [packages/shared/src]
+
+# Don't comment on every PR — the workflow prints a summary anyway.
+comment: false
+
+ignore:
+  - "**/*.test.ts"
+  - "**/*.config.ts"
+  - "**/dist/**"
+  - "**/.output/**"
+  - "**/node_modules/**"
